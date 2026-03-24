@@ -541,7 +541,7 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0;}
 <!-- ─── TAB: CONFIGURAÇÕES (Transbordo) ─── -->
 <div id="configuracoes" class="tab-content">
   <h1 class="page-title">⚙️ Configurações</h1>
-  <p class="page-subtitle">Gerencie clientes, responsáveis e produtos do módulo Transbordo.</p>
+  <p class="page-subtitle">Gerencie clientes, responsáveis, produtos e modelos de equipamentos do módulo Transbordo.</p>
 
   <!-- CLIENTES -->
   <div class="section-card">
@@ -571,6 +571,16 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0;}
       <button class="btn btn-primary" onclick="cfgAdd('produtos','cfg-produto-input','cfg-produtos-list')">+ Adicionar</button>
     </div>
     <div id="cfg-produtos-list"></div>
+  </div>
+
+  <!-- MODELOS DE EQUIPAMENTOS -->
+  <div class="section-card">
+    <div class="section-header"><div class="section-icon">🔧</div><h3 class="section-title">Modelos de Equipamentos</h3></div>
+    <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+      <input type="text" id="cfg-modelo-input" placeholder="Nome do modelo de equipamento..." style="flex:1;min-width:200px;">
+      <button class="btn btn-primary" onclick="cfgAdd('modelos','cfg-modelo-input','cfg-modelos-list')">+ Adicionar</button>
+    </div>
+    <div id="cfg-modelos-list"></div>
   </div>
 </div>
 
@@ -606,7 +616,7 @@ const MODULES = {
     dbStore: 'checklists_transbordo',
     draftKey: 'tiger_draft_transbordo',
     pdfTitle: 'CHECKLIST DE TRANSBORDO',
-    // ── SEÇÃO 1: DADOS GERAIS (Imagem 1) ──
+    // ── SEÇÃO 1: DADOS GERAIS ──
     campos: [
       { id:'tipoOperacao',    label:'Tipo de Operação *',      type:'select', options:['','Expedição','Recebimento'], span:1 },
       { id:'tipoCarga',       label:'Tipo de Carga *',          type:'select', options:['','Contentores','IBCs / Tambores'], span:1 },
@@ -618,18 +628,10 @@ const MODULES = {
       { id:'lacres',          label:'Lacres',                   type:'text',   placeholder:'Numeração dos lacres', span:1 },
       { id:'validadeProduto', label:'Validade do Produto',      type:'text',   placeholder:'dd/mm/aaaa',      span:2 },
     ],
-    // ── SEÇÃO 2: INSPEÇÃO DO EQUIPAMENTO (Imagem 2) ──
-    camposEquipamento: [
-      { id:'serialChassi',      label:'Serial/Chassi',              type:'text', placeholder:'' },
-      { id:'modeloEquipamento', label:'Modelo do Equipamento',      type:'text', placeholder:'' },
-      { id:'validadeTeste',     label:'Validade do Teste',          type:'text', placeholder:'dd/mm/aaaa' },
-      { id:'numeroGPS',         label:'Número do GPS',              type:'text', placeholder:'' },
-      { id:'eslingaNumeracao',  label:'Eslinga - Numeração',        type:'text', placeholder:'' },
-      { id:'eslingaValidade',   label:'Eslinga - Data de Validade', type:'text', placeholder:'dd/mm/aaaa' },
-    ],
-    hasEquipamentoInspecao: true,
-    // ── INSPEÇÃO DINÂMICA POR TIPO DE CARGA ──
-    // Contentores (Imagem 3) e Tambores/IBCs (Imagem 4)
+    // ── SEÇÃO 2: EQUIPAMENTOS (igual Logística Externa) ──
+    hasEquipamentos: true,
+    hasEquipamentoInspecao: false,
+    // ── INSPEÇÃO DINÂMICA POR TIPO DE CARGA (SEM opção TROCA) ──
     inspecaoContentores: [
       'As eslingas estão livres de torções ou dobras?',
       'O equipamento está limpo e livre de resíduos?',
@@ -668,9 +670,10 @@ const MODULES = {
       'Caps Estão Limpos e Aptos para utilização.',
       'As etiquetas de risco e identificação do produto estão corretas e visíveis?',
     ],
+    inspecaoSemTroca: true,
     servicos: [],
     hasServicos: false,
-    statusPor: 'geral',
+    statusPor: 'equipamentos',
     requiredIds: ['tipoOperacao','tipoCarga','responsavel','data'],
   },
   interna: {
@@ -1141,32 +1144,11 @@ function buildForm() {
   // Popular selects de configuração (transbordo)
   if (mod.color === 'transbordo') cfgUpdateSelects();
 
-  // ── Seção INSPEÇÃO DO EQUIPAMENTO (só transbordo)
+  // ── Remover seção antiga de inspeção do equipamento (não mais usado)
   let secEqInsp = document.getElementById('section-equip-inspecao');
-  if (mod.hasEquipamentoInspecao) {
-    if (!secEqInsp) {
-      // Inserir após section-dados
-      const secDados = document.getElementById('section-dados');
-      secEqInsp = document.createElement('div');
-      secEqInsp.id = 'section-equip-inspecao';
-      secEqInsp.className = 'section-card';
-      secDados.insertAdjacentElement('afterend', secEqInsp);
-    }
-    secEqInsp.style.display = 'block';
-    secEqInsp.innerHTML = `
-      <div class="section-header"><div class="section-icon">🔩</div><h3 class="section-title">Inspeção do Equipamento</h3></div>
-      <div class="form-grid" style="grid-template-columns:1fr 1fr;">
-        ${mod.camposEquipamento.map(c => `
-          <div class="form-group">
-            <label for="eq-${c.id}">${c.label}</label>
-            <input type="text" id="eq-${c.id}" placeholder="${c.placeholder}">
-          </div>`).join('')}
-      </div>`;
-  } else {
-    if (secEqInsp) secEqInsp.style.display = 'none';
-  }
+  if (secEqInsp) secEqInsp.remove();
 
-  // ── Equipamentos (só externa)
+  // ── Equipamentos (transbordo e externa)
   document.getElementById('section-equipamentos').style.display = mod.hasEquipamentos ? 'block' : 'none';
   if (mod.hasEquipamentos) {
     document.getElementById('equipamentos-container').innerHTML = '';
@@ -1185,13 +1167,14 @@ function buildForm() {
   const secAssinaturaCliente = document.getElementById('section-assinatura-cliente');
   if (secAssinaturaCliente) secAssinaturaCliente.style.display = mod.color === 'externa' ? 'block' : 'none';
 
-  // ── Inspeção: transbordo tem inspeção dinâmica por tipo de carga
-  if (mod.hasEquipamentoInspecao) {
-    // Atualiza título da seção de inspeção com tipo de carga
-    const inspecaoCard = document.getElementById('inspecao-itens').closest('.section-card');
-    const inspecaoHeader = inspecaoCard ? inspecaoCard.querySelector('.section-title') : null;
+  // ── Inspeção: transbordo tem inspeção dinâmica por tipo de carga (SEM opção TROCA)
+  const inspecaoCard = document.getElementById('inspecao-itens').closest('.section-card');
+  const inspecaoHeader = inspecaoCard ? inspecaoCard.querySelector('.section-title') : null;
+  
+  if (mod.color === 'transbordo') {
+    // Transbordo: inspeção dinâmica por tipo de carga SEM opção TROCA
     if (inspecaoHeader) inspecaoHeader.textContent = 'Inspeção da Carga — Contentores';
-    document.getElementById('inspecao-itens').innerHTML = buildInspecaoHTML(mod.inspecaoContentores);
+    document.getElementById('inspecao-itens').innerHTML = buildInspecaoHTML(mod.inspecaoContentores, false);
     // Listener no tipoCarga para trocar perguntas dinamicamente
     const tipoCargaEl = document.getElementById('tipoCarga');
     if (tipoCargaEl) {
@@ -1200,9 +1183,9 @@ function buildForm() {
         const inspecaoCard2 = document.getElementById('inspecao-itens').closest('.section-card');
         const inspecaoHeader2 = inspecaoCard2 ? inspecaoCard2.querySelector('.section-title') : null;
         let perguntas, titulo;
-        if (val === 'Tambores/IBCs') {
+        if (val === 'IBCs / Tambores') {
           perguntas = mod.inspecaoTambores;
-          titulo = 'Inspeção da Carga — Tambores/IBCs';
+          titulo = 'Inspeção da Carga — IBCs / Tambores';
         } else if (val === 'Contentores') {
           perguntas = mod.inspecaoContentores;
           titulo = 'Inspeção da Carga — Contentores';
@@ -1211,32 +1194,39 @@ function buildForm() {
           titulo = val ? 'Inspeção da Carga — ' + val : 'Inspeção da Carga';
         }
         if (inspecaoHeader2) inspecaoHeader2.textContent = titulo;
-        document.getElementById('inspecao-itens').innerHTML = buildInspecaoHTML(perguntas);
+        document.getElementById('inspecao-itens').innerHTML = buildInspecaoHTML(perguntas, false);
         rebindInspecaoEvents();
         updateProgress();
       });
     }
+  } else if (mod.inspecaoGrupos) {
+    // Módulo com inspeção por grupos (ex: Logística Interna)
+    if (inspecaoHeader) inspecaoHeader.textContent = 'Inspeção do Equipamento';
+    document.getElementById('inspecao-itens').innerHTML = buildInspecaoGruposHTML(mod.inspecaoGrupos);
   } else {
-    // Outros módulos
-    const inspecaoCard = document.getElementById('inspecao-itens').closest('.section-card');
-    const inspecaoHeader = inspecaoCard ? inspecaoCard.querySelector('.section-title') : null;
-    if (mod.inspecaoGrupos) {
-      // Módulo com inspeção por grupos (ex: Logística Interna)
-      if (inspecaoHeader) inspecaoHeader.textContent = 'Inspeção do Equipamento';
-      document.getElementById('inspecao-itens').innerHTML = buildInspecaoGruposHTML(mod.inspecaoGrupos);
-    } else {
-      if (inspecaoHeader) inspecaoHeader.textContent = 'Inspeção';
-      document.getElementById('inspecao-itens').innerHTML = buildInspecaoHTML(mod.inspecao);
-    }
+    // Outros módulos (externa)
+    if (inspecaoHeader) inspecaoHeader.textContent = 'Inspeção';
+    document.getElementById('inspecao-itens').innerHTML = buildInspecaoHTML(mod.inspecao);
   }
 
   switchTab('checklist');
 }
 
 // ════════════════════════════════════════════════════════════
-//  EQUIPAMENTO (apenas externa)
+//  EQUIPAMENTO (transbordo e externa)
 // ════════════════════════════════════════════════════════════
 function getEquipamentoTemplate(index) {
+  // Lista de modelos - usa configuração se for transbordo, senão usa lista padrão
+  let modelosOptions;
+  if (currentModule && currentModule.color === 'transbordo') {
+    const cfg = cfgLoad();
+    const modelos = cfg.modelos || [];
+    modelosOptions = '<option value="">Selecione o equipamento</option>' + 
+      modelos.map(m => `<option>${m}</option>`).join('');
+  } else {
+    modelosOptions = '<option value="">Selecione o equipamento</option><option>BABY CONTAINER</option><option>CAÇAMBA</option><option>CAIXA</option><option>CESTA</option><option>CONTAINER 10\'</option><option>CONTAINER 20\'</option><option>CONTENTOR DE TERCEIRO</option><option>CUTTING BOX</option><option>FRAC TANK</option><option>GAPE 1.000L</option><option>GAPE 1.500L</option><option>HELI FUEL</option><option>MINI CONTAINER</option><option>OCTO 5.000L</option><option>REEFER</option><option>SKID</option><option>TANQUE 1.000L</option><option>TANQUE 1.500L</option><option>TANQUE 5.000L</option>';
+  }
+  
   return `<div class="equipamento-card" id="equipamento-${index}">
     <div class="equipamento-header">
       <span class="equipamento-badge">Equipamento ${index}</span>
@@ -1249,7 +1239,7 @@ function getEquipamentoTemplate(index) {
     </div>
     <div class="form-grid">
       <div class="form-group"><label>Nº Série</label><input type="text" class="equipamento-serie" placeholder="Número de série"></div>
-      <div class="form-group"><label>Modelo</label><select class="equipamento-modelo"><option value="">Selecione o equipamento</option><option>BABY CONTAINER</option><option>CAÇAMBA</option><option>CAIXA</option><option>CESTA</option><option>CONTAINER 10'</option><option>CONTAINER 20'</option><option>CONTENTOR DE TERCEIRO</option><option>CUTTING BOX</option><option>FRAC TANK</option><option>GAPE 1.000L</option><option>GAPE 1.500L</option><option>HELI FUEL</option><option>MINI CONTAINER</option><option>OCTO 5.000L</option><option>REEFER</option><option>SKID</option><option>TANQUE 1.000L</option><option>TANQUE 1.500L</option><option>TANQUE 5.000L</option></select></div>
+      <div class="form-group"><label>Modelo</label><select class="equipamento-modelo">${modelosOptions}</select></div>
       <div class="form-group"><label>Data da Certificação</label><input type="date" class="equipamento-cert-data"></div>
       <div class="form-group"><label>Vencimento Certif.</label><input type="date" class="equipamento-cert-venc"><span class="cert-indicator"></span></div>
       <div class="form-group"><label>Nº Eslinga</label><input type="text" class="equipamento-eslinga" placeholder="Número da eslinga"></div>
@@ -2076,8 +2066,12 @@ function fmtDate(d) {
 const CFG_KEY = 'tiger_transbordo_config';
 
 function cfgLoad() {
-  try { return JSON.parse(localStorage.getItem(CFG_KEY)) || { clientes:[], responsaveis:[], produtos:[] }; }
-  catch(e) { return { clientes:[], responsaveis:[], produtos:[] }; }
+  try { 
+    const data = JSON.parse(localStorage.getItem(CFG_KEY)) || { clientes:[], responsaveis:[], produtos:[], modelos:[] }; 
+    if (!data.modelos) data.modelos = [];
+    return data;
+  }
+  catch(e) { return { clientes:[], responsaveis:[], produtos:[], modelos:[] }; }
 }
 function cfgSave(data) { localStorage.setItem(CFG_KEY, JSON.stringify(data)); }
 
@@ -2127,6 +2121,7 @@ function cfgRenderAll() {
   cfgRenderList('clientes',    'cfg-clientes-list');
   cfgRenderList('responsaveis','cfg-responsaveis-list');
   cfgRenderList('produtos',    'cfg-produtos-list');
+  cfgRenderList('modelos',     'cfg-modelos-list');
 }
 
 function cfgUpdateSelects() {
