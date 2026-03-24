@@ -1,0 +1,2430 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tiger Rentank — CheckFlowUp SaaS</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.js"></script>
+<style>
+:root {
+  --yellow:#FFCC00;--yellow-dark:#E6B800;--yellow-glow:rgba(255,204,0,0.22);
+  --orange:#FF9900;
+  --blue:#3B82F6;--blue-dark:#2563EB;--blue-glow:rgba(59,130,246,0.22);
+  --green:#22C55E;--green-dark:#16A34A;--green-glow:rgba(34,197,94,0.22);
+  --bg:#0F0F0F;--bg-card:#1A1A1A;--bg-input:#242424;--bg-section:#1E1E1E;
+  --border:#2E2E2E;--border-active:#3E3E3E;
+  --text:#F0F0F0;--text-muted:#888;--text-dim:#555;
+  --success:#22C55E;--danger:#EF4444;--warning:#F97316;--info:#3B82F6;
+  --radius:12px;--radius-sm:8px;--radius-lg:16px;--shadow:0 4px 24px rgba(0,0,0,.4);
+  --mod-color: var(--yellow); --mod-glow: var(--yellow-glow);
+}
+[data-theme="light"] {
+  --bg:#F4F4F5;--bg-card:#FFFFFF;--bg-input:#F9F9F9;--bg-section:#F1F1F1;
+  --border:#E4E4E7;--border-active:#D4D4D8;
+  --text:#18181B;--text-muted:#71717A;--text-dim:#A1A1AA;--shadow:0 4px 24px rgba(0,0,0,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;line-height:1.5;min-height:100vh;transition:background .25s,color .25s;}
+
+/* ── MODULE SELECTOR ────────────────────────────────────── */
+#module-selector{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 16px;gap:32px;}
+.selector-logo{display:flex;flex-direction:column;align-items:center;gap:10px;}
+.selector-logo-badge{background:var(--yellow);color:#111;font-family:'Syne',sans-serif;font-weight:800;font-size:14px;letter-spacing:.1em;padding:10px 22px;border-radius:8px;}
+.selector-logo-sub{font-family:'Syne',sans-serif;font-size:12px;font-weight:600;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;}
+.selector-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;text-align:center;line-height:1.2;}
+.selector-subtitle{font-size:14px;color:var(--text-muted);text-align:center;margin-top:-20px;}
+.modules-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;width:100%;max-width:820px;}
+.module-card{background:var(--bg-card);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:26px 22px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+.module-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .2s;}
+.module-card:hover{transform:translateY(-3px);box-shadow:0 8px 32px rgba(0,0,0,.3);}
+.module-card.transbordo:hover{border-color:var(--blue);box-shadow:0 8px 32px var(--blue-glow);}
+.module-card.transbordo::before{background:var(--blue-glow);}
+.module-card.interna:hover{border-color:var(--green);box-shadow:0 8px 32px var(--green-glow);}
+.module-card.interna::before{background:var(--green-glow);}
+.module-card.externa:hover{border-color:var(--yellow);box-shadow:0 8px 32px var(--yellow-glow);}
+.module-card.externa::before{background:var(--yellow-glow);}
+.module-card.visao-geral:hover{border-color:var(--orange);box-shadow:0 8px 32px rgba(255,153,0,.2);}
+.module-card.visao-geral::before{background:rgba(255,153,0,.08);}
+.module-card:hover::before{opacity:1;}
+.module-icon{font-size:32px;margin-bottom:14px;}
+.module-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;margin-bottom:6px;}
+.module-desc{font-size:13px;color:var(--text-muted);line-height:1.4;}
+.module-badge{display:inline-block;margin-top:14px;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;}
+.badge-blue{background:var(--blue-glow);color:var(--blue);}
+.badge-green{background:var(--green-glow);color:var(--green);}
+.badge-yellow{background:var(--yellow-glow);color:var(--yellow-dark);}
+.badge-orange{background:rgba(255,153,0,.15);color:var(--orange);}
+
+/* ── APP WRAPPER ─────────────────────────────────────────── */
+#app-wrapper{display:none;}
+
+/* ── HEADER ─────────────────────────────────────────────── */
+header{background:var(--bg-card);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;height:60px;position:sticky;top:0;z-index:200;}
+.logo-badge{background:var(--yellow);color:#111;font-family:'Syne',sans-serif;font-weight:800;font-size:11px;letter-spacing:.08em;padding:6px 12px;border-radius:6px;white-space:nowrap;}
+.header-center{display:flex;align-items:center;gap:8px;}
+.mod-tag{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;padding:4px 10px;border-radius:100px;letter-spacing:.06em;text-transform:uppercase;transition:all .3s;}
+.mod-tag.transbordo{background:var(--blue-glow);color:var(--blue);border:1px solid var(--blue);}
+.mod-tag.interna{background:var(--green-glow);color:var(--green);border:1px solid var(--green);}
+.mod-tag.externa{background:var(--yellow-glow);color:var(--yellow-dark);border:1px solid var(--yellow);}
+.header-right{display:flex;align-items:center;gap:8px;}
+.theme-btn,.back-btn{background:none;border:1px solid var(--border);border-radius:8px;color:var(--text-muted);height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;transition:all .2s;padding:0 10px;gap:5px;font-family:'Syne',sans-serif;font-size:11px;font-weight:600;}
+.theme-btn{width:34px;padding:0;font-size:15px;}
+.theme-btn:hover,.back-btn:hover{border-color:var(--mod-color);color:var(--mod-color);}
+
+/* ── PROGRESS BAR ───────────────────────────────────────── */
+.progress-bar-wrap{background:var(--bg-card);border-bottom:1px solid var(--border);padding:8px 20px;display:flex;align-items:center;gap:10px;}
+.progress-bar-track{flex:1;height:5px;background:var(--border);border-radius:100px;overflow:hidden;}
+.progress-bar-fill{height:100%;background:var(--mod-color);border-radius:100px;transition:width .4s ease;}
+.progress-label{font-size:11px;font-weight:700;color:var(--mod-color);font-family:'Syne',sans-serif;white-space:nowrap;min-width:36px;text-align:right;}
+.draft-badge{font-size:10px;color:var(--text-muted);background:var(--bg-input);border:1px solid var(--border);border-radius:100px;padding:2px 8px;white-space:nowrap;}
+
+/* ── NAV ────────────────────────────────────────────────── */
+.nav-bar{background:var(--bg-card);border-bottom:1px solid var(--border);padding:0 20px;display:flex;gap:2px;overflow-x:auto;}
+.nav-tab{display:flex;align-items:center;gap:7px;padding:0 18px;height:46px;font-family:'Syne',sans-serif;font-size:12px;font-weight:600;color:var(--text-muted);text-decoration:none;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;letter-spacing:.04em;text-transform:uppercase;}
+.nav-tab:hover{color:var(--text);}
+.nav-tab.active{color:var(--mod-color);border-bottom-color:var(--mod-color);}
+
+/* ── LAYOUT ─────────────────────────────────────────────── */
+.container{max-width:900px;margin:0 auto;padding:20px 16px;}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+.page-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:4px;}
+.page-subtitle{font-size:13px;color:var(--text-muted);margin-bottom:20px;}
+
+/* ── SECTION CARD ───────────────────────────────────────── */
+.section-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px;margin-bottom:14px;transition:border-color .2s;}
+.section-card:hover{border-color:var(--border-active);}
+.section-header{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.section-icon{width:30px;height:30px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.section-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--mod-color);letter-spacing:.06em;text-transform:uppercase;}
+
+/* ── FORM ───────────────────────────────────────────────── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-group.span-2{grid-column:span 2;}
+.form-group.span-3{grid-column:span 3;}
+label{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;}
+input[type=text],input[type=date],input[type=time],select,textarea{background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);padding:10px 13px;font-size:14px;font-family:'DM Sans',sans-serif;width:100%;transition:border-color .2s,box-shadow .2s;outline:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--mod-color);box-shadow:0 0 0 3px var(--mod-glow);}
+textarea{resize:vertical;min-height:76px;}
+input.field-error,select.field-error{border-color:var(--danger)!important;box-shadow:0 0 0 3px rgba(239,68,68,.18)!important;animation:shake .3s ease;}
+input.field-ok{border-color:var(--success)!important;}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.field-hint{font-size:11px;margin-top:3px;display:none;}
+.field-hint.visible{display:block;}
+.field-hint.error{color:var(--danger);}
+.field-hint.ok{color:var(--success);}
+
+/* ── BUTTONS ────────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 18px;border:none;border-radius:var(--radius-sm);font-family:'Syne',sans-serif;font-size:12px;font-weight:700;letter-spacing:.05em;cursor:pointer;transition:all .15s;text-transform:uppercase;white-space:nowrap;user-select:none;}
+.btn:active{transform:scale(.96);}
+.btn:disabled{opacity:.5;pointer-events:none;}
+.btn-primary{background:var(--mod-color);color:#111;}
+.btn-primary:hover{filter:brightness(.9);box-shadow:0 4px 16px var(--mod-glow);}
+.btn-success{background:var(--success);color:#fff;}
+.btn-success:hover{background:#16a34a;}
+.btn-danger{background:transparent;color:var(--danger);border:1px solid rgba(239,68,68,.3);}
+.btn-danger:hover{background:rgba(239,68,68,.1);border-color:var(--danger);}
+.btn-warning{background:transparent;color:var(--text-muted);border:1px solid var(--border);}
+.btn-warning:hover{background:var(--bg-input);color:var(--text);}
+.btn-ghost{background:transparent;color:var(--text-muted);border:1px solid var(--border);}
+.btn-ghost:hover{background:var(--bg-input);color:var(--text);}
+.btn-info{background:var(--info);color:#fff;}
+.btn-info:hover{background:#2563eb;}
+.btn-sm{padding:6px 12px;font-size:11px;border-radius:6px;}
+.btn-group{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;}
+
+/* ── RADIO PILLS ────────────────────────────────────────── */
+.radio-group{display:flex;gap:6px;flex-wrap:wrap;}
+.radio-pill{display:flex;align-items:center;}
+.radio-pill input[type=radio]{position:absolute;opacity:0;width:0;height:0;pointer-events:none;}
+.radio-pill label{padding:8px 16px;border-radius:100px;border:1.5px solid var(--border-active);color:var(--text-muted);cursor:pointer;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;transition:all .15s;user-select:none;}
+.radio-pill label:active{transform:scale(.93);}
+.radio-pill input:checked+label{background:var(--mod-color);color:#111;border-color:var(--mod-color);box-shadow:0 0 0 3px var(--mod-glow);}
+.radio-pill.danger input:checked+label{background:var(--danger);color:#fff;border-color:var(--danger);box-shadow:0 0 0 3px rgba(239,68,68,.2);}
+.radio-pill.warning-pill input:checked+label{background:var(--warning);color:#fff;border-color:var(--warning);box-shadow:0 0 0 3px rgba(249,115,22,.2);}
+/* Grupo de inspeção */
+.insp-grupo{margin-bottom:18px;}
+.insp-grupo-titulo{font-family:'Syne',sans-serif;font-size:12px;font-weight:800;color:var(--mod-color);text-transform:uppercase;letter-spacing:.08em;padding:8px 12px;background:rgba(255,255,255,.04);border-left:3px solid var(--mod-color);border-radius:0 6px 6px 0;margin-bottom:8px;}
+.radio-pill.success input:checked+label{background:var(--success);color:#fff;border-color:var(--success);box-shadow:0 0 0 3px rgba(34,197,94,.2);}
+
+/* ── SERVICES ───────────────────────────────────────────── */
+.services-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:7px;}
+.service-checkbox{display:none;}
+.service-label{display:flex;align-items:center;gap:8px;padding:10px 13px;background:var(--bg-section);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;transition:all .15s;user-select:none;}
+.service-label::before{content:'';width:15px;height:15px;border:1.5px solid var(--border-active);border-radius:4px;flex-shrink:0;transition:all .15s;}
+.service-checkbox:checked+.service-label{background:rgba(255,255,255,.05);border-color:var(--mod-color);color:var(--mod-color);}
+.service-checkbox:checked+.service-label::before{background:var(--mod-color);border-color:var(--mod-color);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 6l3 3 5-5' stroke='%23111' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-size:10px;background-position:center;background-repeat:no-repeat;}
+
+/* ── INSPECTION ─────────────────────────────────────────── */
+.inspection-item{background:var(--bg-section);border:1px solid var(--border);border-radius:var(--radius-sm);padding:13px 15px;margin-bottom:7px;transition:border-color .2s;}
+.inspection-item:hover{border-color:var(--border-active);}
+.inspection-item.has-nao{border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.04);}
+.inspection-question{font-size:13px;color:var(--text);margin-bottom:9px;line-height:1.4;display:flex;gap:7px;align-items:flex-start;}
+.insp-num{font-family:'Syne',sans-serif;font-size:12px;font-weight:800;color:var(--mod-color);min-width:18px;flex-shrink:0;padding-top:1px;}
+.insp-obs-wrap{margin-top:8px;display:none;}
+.insp-obs-wrap.visible{display:block;}
+.insp-obs-wrap textarea{background:var(--bg-input);border:1px solid rgba(239,68,68,.4);border-radius:6px;color:var(--text);padding:8px 10px;font-size:12px;font-family:'DM Sans',sans-serif;width:100%;resize:vertical;min-height:56px;outline:none;}
+.insp-obs-wrap textarea:focus{border-color:var(--danger);box-shadow:0 0 0 3px rgba(239,68,68,.15);}
+.insp-obs-label{font-size:11px;font-weight:600;color:var(--danger);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;display:block;}
+
+/* ── EQUIPMENT ──────────────────────────────────────────── */
+.equipamento-card{background:var(--bg-section);border:1px solid var(--border);border-radius:var(--radius-sm);padding:15px;margin-bottom:11px;}
+/* FOTOS POR EQUIPAMENTO */
+.eq-foto-section{border-top:1px solid var(--border);margin-top:14px;padding-top:14px;}
+.eq-foto-label{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;}
+.eq-foto-upload{display:flex;flex-direction:column;gap:4px;}
+.eq-foto-count{font-size:12px;color:var(--text-muted);}
+.equipamento-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px;flex-wrap:wrap;gap:10px;}
+.equipamento-badge{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:var(--mod-color);font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;padding:4px 10px;border-radius:6px;text-transform:uppercase;}
+.eq-status-group{display:flex;gap:5px;flex-wrap:wrap;align-items:center;}
+.eq-status-group input[type=radio]{position:absolute;opacity:0;width:0;height:0;pointer-events:none;}
+.eq-status-group label{padding:5px 11px;border-radius:100px;border:1.5px solid var(--border-active);color:var(--text-muted);cursor:pointer;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;transition:all .15s;user-select:none;}
+.eq-status-group .eq-apr input:checked+label{background:var(--success);color:#fff;border-color:var(--success);}
+.eq-status-group .eq-rep input:checked+label{background:var(--danger);color:#fff;border-color:var(--danger);}
+.eq-status-group .eq-pen input:checked+label{background:var(--warning);color:#fff;border-color:var(--warning);}
+.cert-indicator{font-size:11px;font-weight:700;margin-top:3px;display:none;}
+
+/* ── SIGNATURE ──────────────────────────────────────────── */
+.signature-wrap{border:1px solid var(--border);border-radius:var(--radius-sm);background:#fff;height:180px;position:relative;overflow:hidden;cursor:crosshair;transition:border-color .2s;}
+.signature-wrap:hover{border-color:var(--mod-color);}
+.signature-wrap canvas{width:100%;height:100%;}
+.sig-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;opacity:0;pointer-events:none;transition:opacity .25s;}
+.sig-modal-overlay.open{opacity:1;pointer-events:all;}
+.sig-modal-canvas{background:#fff;border-radius:var(--radius);cursor:crosshair;}
+.sig-modal-bar{display:flex;gap:10px;align-items:center;}
+
+/* ── PHOTO ──────────────────────────────────────────────── */
+.photo-upload-area{border:1.5px dashed var(--border-active);border-radius:var(--radius-sm);padding:14px;background:var(--bg-section);}
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:7px;margin-top:11px;}
+.photo-item{width:100%;aspect-ratio:1;border-radius:8px;overflow:hidden;position:relative;border:1px solid var(--border);}
+.photo-item img{width:100%;height:100%;object-fit:cover;}
+.remove-photo{position:absolute;top:3px;right:3px;width:20px;height:20px;background:rgba(0,0,0,.7);color:#fff;border:none;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;}
+.remove-photo:hover{background:var(--danger);}
+.photo-count-badge{display:inline-flex;align-items:center;gap:4px;background:var(--bg-input);border:1px solid var(--border);border-radius:100px;padding:3px 10px;font-size:12px;color:var(--text-muted);margin-top:8px;}
+input[type=file]{display:none;}
+
+/* ── STATUS BADGE ───────────────────────────────────────── */
+.status-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;}
+.status-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;}
+.badge-approved{background:rgba(34,197,94,.15);color:var(--success);}
+.badge-rejected{background:rgba(239,68,68,.15);color:var(--danger);}
+.badge-pending{background:rgba(249,115,22,.15);color:var(--warning);}
+
+/* ── HISTORY ────────────────────────────────────────────── */
+.history-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:15px;margin-bottom:9px;display:flex;align-items:center;gap:14px;transition:border-color .2s;}
+.history-card:hover{border-color:var(--border-active);}
+.history-info{flex:1;min-width:0;}
+.history-client{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.history-meta{font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.meta-dot{color:var(--text-dim);}
+.history-actions{display:flex;gap:5px;flex-shrink:0;}
+.mod-chip{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:100px;letter-spacing:.06em;text-transform:uppercase;}
+.chip-transbordo{background:var(--blue-glow);color:var(--blue);}
+.chip-interna{background:var(--green-glow);color:var(--green);}
+.chip-externa{background:var(--yellow-glow);color:var(--yellow-dark);}
+
+/* ── FILTERS ────────────────────────────────────────────── */
+.filters-bar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px;align-items:flex-end;}
+.filter-group{display:flex;flex-direction:column;gap:4px;min-width:130px;}
+.filter-group label{font-size:11px;}
+.filter-group select,.filter-group input{padding:8px 11px;font-size:13px;}
+.search-wrap{position:relative;flex:1;min-width:180px;}
+.search-wrap input{padding-left:34px;}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:13px;pointer-events:none;}
+.storage-box{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:11px 14px;margin-bottom:14px;}
+
+/* ── NOTIFICATION ───────────────────────────────────────── */
+.notification{position:fixed;bottom:20px;right:20px;background:var(--bg-card);border:1px solid var(--border);border-left:3px solid var(--success);color:var(--text);padding:11px 18px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;box-shadow:var(--shadow);z-index:999;transform:translateY(0);opacity:1;transition:all .3s;display:flex;align-items:center;gap:8px;max-width:320px;}
+.notification.hidden{opacity:0;transform:translateY(10px);pointer-events:none;}
+.notification.error{border-left-color:var(--danger);}
+hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0;}
+.empty-state{text-align:center;padding:44px 20px;color:var(--text-muted);}
+.empty-state-icon{font-size:38px;margin-bottom:10px;opacity:.35;}
+
+/* ── MODAL ──────────────────────────────────────────────── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .25s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal-box{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg) var(--radius-lg) 0 0;width:100%;max-width:640px;max-height:85vh;overflow-y:auto;padding:24px 20px 32px;transform:translateY(40px);transition:transform .3s;}
+.modal-overlay.open .modal-box{transform:translateY(0);}
+.modal-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.modal-section{margin-bottom:14px;}
+.modal-section-title{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;}
+.modal-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.modal-row:last-child{border-bottom:none;}
+.modal-row span:first-child{color:var(--text-muted);}
+.modal-row span:last-child{font-weight:600;text-align:right;}
+.modal-insp-item{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.modal-insp-item:last-child{border-bottom:none;}
+.modal-insp-q{color:var(--text-muted);flex:1;}
+.modal-insp-r{font-weight:700;white-space:nowrap;}
+.r-sim{color:var(--success);}
+.r-nao{color:var(--danger);}
+.r-na{color:var(--text-muted);}
+.r-nr{color:var(--warning);}
+.r-troca{color:var(--warning);font-weight:800;}
+.modal-footer{display:flex;gap:10px;margin-top:20px;position:sticky;bottom:0;background:var(--bg-card);padding-top:12px;}
+.modal-footer .btn{flex:1;justify-content:center;}
+
+/* ── DASHBOARD ──────────────────────────────────────────── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:18px;}
+.stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center;}
+.stat-number{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--mod-color);line-height:1;}
+.stat-label{font-size:11px;color:var(--text-muted);margin-top:4px;text-transform:uppercase;letter-spacing:.05em;}
+.chart-bar-wrap{display:flex;flex-direction:column;gap:7px;}
+.chart-bar-row{display:flex;align-items:center;gap:10px;font-size:12px;}
+.chart-bar-label{width:110px;color:var(--text-muted);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.chart-bar-track{flex:1;height:20px;background:var(--bg-section);border-radius:4px;overflow:hidden;}
+.chart-bar-fill{height:100%;border-radius:4px;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;font-size:10px;font-weight:700;color:#111;transition:width .5s ease;}
+.chart-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em;}
+
+/* ── VISÃO GERAL ─────────────────────────────────────────── */
+.visao-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:20px;}
+.visao-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;cursor:pointer;transition:all .2s;}
+.visao-card:hover{transform:translateY(-2px);}
+.visao-card.transbordo:hover{border-color:var(--blue);}
+.visao-card.interna:hover{border-color:var(--green);}
+.visao-card.externa:hover{border-color:var(--yellow);}
+.visao-card-num{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;line-height:1;}
+.visao-card-label{font-size:12px;color:var(--text-muted);margin-top:4px;}
+
+/* ── RESPONSIVE ─────────────────────────────────────────── */
+@media (pointer:coarse){
+  .btn{min-height:44px;}
+  .radio-pill label{min-height:40px;display:flex;align-items:center;}
+  .service-label{min-height:44px;}
+  input,select,textarea{min-height:44px;font-size:16px!important;}
+  .nav-tab{min-height:46px;}
+}
+@media (max-width:768px){
+  .form-grid{grid-template-columns:1fr;}
+  .form-group.span-2,.form-group.span-3{grid-column:span 1;}
+  .history-card{flex-direction:column;align-items:flex-start;gap:10px;}
+  .history-actions{align-self:stretch;display:flex;}
+  .history-actions .btn{flex:1;justify-content:center;}
+  .filters-bar{flex-direction:column;}
+  .filter-group{min-width:100%;}
+  .search-wrap{min-width:100%;}
+  .btn-group{flex-direction:column;gap:8px;}
+  .btn-group .btn{width:100%;justify-content:center;}
+  .stats-grid{grid-template-columns:1fr 1fr;}
+  .modal-box{padding:18px 15px 28px;}
+  .modal-footer{flex-direction:column;}
+  .notification{left:12px;right:12px;bottom:12px;max-width:none;}
+  header{padding:0 14px;height:52px;}
+  .nav-bar{padding:0 10px;}
+  .nav-tab{padding:0 12px;font-size:11px;flex:1;justify-content:center;}
+  .container{padding:14px 11px;}
+  .modules-grid{grid-template-columns:1fr 1fr;}
+  .selector-title{font-size:18px;}
+}
+@media (max-width:480px){
+  .modules-grid{grid-template-columns:1fr;}
+}
+@media (min-width:1024px){
+  .container{max-width:860px;padding:28px 20px;}
+  .section-card{padding:26px;}
+  .page-title{font-size:26px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════
+     NOTIFICATION
+════════════════════════════════════════════════════════ -->
+<div class="notification hidden" id="notification">
+  <span id="notif-icon">✓</span>
+  <span id="notif-text">OK</span>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     MODAL RESUMO
+════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-resumo">
+  <div class="modal-box">
+    <div class="modal-title">📋 Confirmar Registro</div>
+    <div id="modal-content"></div>
+    <div class="modal-footer">
+      <button class="btn btn-warning" id="modal-cancelar">← Voltar</button>
+      <button class="btn btn-success" id="modal-confirmar">💾 Confirmar e Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     MODAL ASSINATURA FULLSCREEN
+════════════════════════════════════════════════════════ -->
+<div class="sig-modal-overlay" id="sig-modal">
+  <p style="color:#fff;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;" id="sig-modal-title">Assinatura</p>
+  <canvas class="sig-modal-canvas" id="sig-modal-canvas" style="width:min(700px,95vw);height:min(300px,45vh);"></canvas>
+  <div class="sig-modal-bar">
+    <button class="btn btn-danger btn-sm" id="sig-modal-clear">✕ Limpar</button>
+    <button class="btn btn-success btn-sm" id="sig-modal-ok">✓ Confirmar</button>
+    <button class="btn btn-ghost btn-sm" id="sig-modal-cancel">Cancelar</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     MODULE SELECTOR
+════════════════════════════════════════════════════════ -->
+<div id="module-selector">
+  <div class="selector-logo">
+    <div class="selector-logo-badge">Tiger Rentank</div>
+    <div class="selector-logo-sub">CheckFlowUp · Sistema Unificado</div>
+  </div>
+  <div class="selector-title">Selecione o Módulo de Operação</div>
+  <p class="selector-subtitle">Todos os seus checklists em um só lugar</p>
+  <div class="modules-grid">
+    <div class="module-card transbordo" onclick="selectModule('transbordo')">
+      <div class="module-icon">🔄</div>
+      <div class="module-name">Transbordo</div>
+      <div class="module-desc">Checklist de operações de transbordo de cargas, tanques e líquidos.</div>
+      <span class="module-badge badge-blue">Operações</span>
+    </div>
+    <div class="module-card interna" onclick="selectModule('interna')">
+      <div class="module-icon">🏭</div>
+      <div class="module-name">Logística Interna</div>
+      <div class="module-desc">Movimentação e controle de equipamentos dentro da planta.</div>
+      <span class="module-badge badge-green">Interna</span>
+    </div>
+    <div class="module-card externa" onclick="selectModule('externa')">
+      <div class="module-icon">🚛</div>
+      <div class="module-name">Logística Externa</div>
+      <div class="module-desc">Atendimentos externos, certificação e inspeção de equipamentos.</div>
+      <span class="module-badge badge-yellow">Externa</span>
+    </div>
+    <div class="module-card visao-geral" onclick="selectModule('visao')">
+      <div class="module-icon">📊</div>
+      <div class="module-name">Visão Geral</div>
+      <div class="module-desc">Dashboard consolidado com dados dos 3 módulos integrados.</div>
+      <span class="module-badge badge-orange">Analytics</span>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     APP WRAPPER
+════════════════════════════════════════════════════════ -->
+<div id="app-wrapper">
+
+<!-- HEADER -->
+<header>
+  <div class="logo-badge">Tiger Rentank</div>
+  <div class="header-center">
+    <span class="mod-tag" id="mod-tag">Módulo</span>
+  </div>
+  <div class="header-right">
+    <button class="back-btn" id="btn-trocar">← Módulo</button>
+    <button class="theme-btn" id="theme-toggle" title="Alternar tema">🌙</button>
+    <div style="width:8px;height:8px;background:var(--success);border-radius:50%;box-shadow:0 0 6px var(--success);"></div>
+  </div>
+</header>
+
+<!-- PROGRESS BAR (only for checklist tab) -->
+<div class="progress-bar-wrap" id="progress-wrap" style="display:none;">
+  <div class="progress-bar-track">
+    <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+  <span class="progress-label" id="progress-label">0%</span>
+  <span class="draft-badge" id="draft-status">Rascunho</span>
+</div>
+
+<!-- NAV -->
+<div class="nav-bar" id="main-nav">
+  <a href="#" class="nav-tab active" data-tab="checklist"><span>📋</span> Checklist</a>
+  <a href="#" class="nav-tab" data-tab="historico"><span>📂</span> Histórico</a>
+  <a href="#" class="nav-tab" data-tab="dashboard"><span>📊</span> Dashboard</a>
+</div>
+
+<div class="container">
+
+<!-- ─── TAB: CHECKLIST ─── -->
+<div id="checklist" class="tab-content active">
+  <h1 class="page-title" id="form-title">Novo Registro</h1>
+  <p class="page-subtitle">Preencha os campos obrigatórios (*) para registrar.</p>
+
+  <!-- DADOS GERAIS (dinâmico por módulo) -->
+  <div class="section-card" id="section-dados">
+    <div class="section-header"><div class="section-icon">👤</div><h3 class="section-title">Dados do Registro</h3></div>
+    <div class="form-grid" id="form-dados-grid">
+      <!-- preenchido por JS -->
+    </div>
+  </div>
+
+  <!-- EQUIPAMENTOS (apenas externa) -->
+  <div class="section-card" id="section-equipamentos" style="display:none;">
+    <div class="section-header"><div class="section-icon">🔧</div><h3 class="section-title">Equipamentos</h3></div>
+    <div id="equipamentos-container"></div>
+    <button type="button" class="btn btn-ghost" id="add-equipamento"><span>+</span> Adicionar Equipamento</button>
+  </div>
+
+  <!-- SERVIÇOS (oculto no transbordo via JS) -->
+  <div class="section-card" id="section-servicos">
+    <div class="section-header"><div class="section-icon">⚙️</div><h3 class="section-title">Serviços Realizados</h3></div>
+    <div class="services-grid" id="servicos-grid">
+      <!-- preenchido por JS -->
+    </div>
+  </div>
+
+  <!-- INSPEÇÃO -->
+  <div class="section-card">
+    <div class="section-header"><div class="section-icon">🔍</div><h3 class="section-title">Inspeção</h3></div>
+    <div id="inspecao-itens">
+      <!-- preenchido por JS -->
+    </div>
+  </div>
+
+  <!-- OBSERVAÇÕES + FOTOS + ASSINATURAS -->
+  <div class="section-card">
+    <div class="section-header"><div class="section-icon">✅</div><h3 class="section-title">Observações e Finalização</h3></div>
+    <div class="form-group" style="margin-bottom:16px;"><label for="observacoes">Observações</label><textarea id="observacoes" placeholder="Digite observações relevantes..."></textarea></div>
+    <hr class="divider">
+    <div class="form-group" style="margin-bottom:16px;" id="section-assinatura-responsavel">
+      <label>Assinatura do Responsável</label>
+      <div class="signature-wrap"><canvas id="signature-canvas"></canvas></div>
+      <div style="margin-top:6px;display:flex;gap:8px;">
+        <button type="button" class="btn btn-ghost btn-sm" id="clear-signature">✕ Limpar</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="expand-signature">⛶ Tela cheia</button>
+      </div>
+    </div>
+    <div class="form-group" id="section-assinatura-cliente">
+      <label>Assinatura do Cliente / Receptor *</label>
+      <div class="signature-wrap"><canvas id="signature-canvas-cliente"></canvas></div>
+      <div style="margin-top:6px;display:flex;gap:8px;">
+        <button type="button" class="btn btn-ghost btn-sm" id="clear-signature-cliente">✕ Limpar</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="expand-signature-cliente">⛶ Tela cheia</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-group" style="margin-bottom:40px;">
+    <button type="button" class="btn btn-success" id="salvar">💾 Salvar Checklist</button>
+    <button type="button" class="btn btn-warning" id="limpar">↺ Limpar Formulário</button>
+  </div>
+</div>
+
+<!-- ─── TAB: HISTÓRICO ─── -->
+<div id="historico" class="tab-content">
+  <h1 class="page-title">Histórico</h1>
+  <p class="page-subtitle">Consulte, edite e gerencie os registros salvos.</p>
+  <div id="storage-indicator"></div>
+  <div class="filters-bar">
+    <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" id="filter-search" placeholder="Buscar por cliente ou responsável..."></div>
+    <div class="filter-group"><label>Status</label><select id="filter-status"><option value="all">Todos</option><option value="APROVADO">Aprovado</option><option value="REPROVADO">Reprovado</option><option value="PENDENTE">Pendente</option></select></div>
+    <div class="filter-group"><label>Data</label><input type="date" id="filter-date"></div>
+    <button type="button" class="btn btn-primary btn-sm" id="apply-filters" style="align-self:flex-end;">Aplicar</button>
+    <button type="button" class="btn btn-ghost btn-sm" id="export-json" style="align-self:flex-end;">⬇ Exportar</button>
+    <button type="button" class="btn btn-ghost btn-sm" id="import-json-btn" style="align-self:flex-end;">⬆ Importar</button>
+    <input type="file" id="import-json-input" accept=".json" style="display:none;">
+    <button type="button" class="btn btn-danger btn-sm" id="clear-all-data" style="align-self:flex-end;">🗑 Limpar Tudo</button>
+  </div>
+  <div id="history-list"></div>
+</div>
+
+<!-- ─── TAB: DASHBOARD ─── -->
+<div id="dashboard" class="tab-content">
+  <h1 class="page-title">Dashboard</h1>
+  <p class="page-subtitle" id="dashboard-subtitle">Visão geral dos registros.</p>
+  <div id="dashboard-content"></div>
+</div>
+
+<!-- ─── TAB: VISÃO GERAL ─── -->
+<div id="visao-geral" class="tab-content">
+  <h1 class="page-title">Visão Geral</h1>
+  <p class="page-subtitle">Consolidado dos 3 módulos integrados.</p>
+  <div id="visao-content"></div>
+</div>
+
+<!-- ─── TAB: CONFIGURAÇÕES (Transbordo) ─── -->
+<div id="configuracoes" class="tab-content">
+  <h1 class="page-title">⚙️ Configurações</h1>
+  <p class="page-subtitle">Gerencie clientes, responsáveis e produtos do módulo Transbordo.</p>
+
+  <!-- CLIENTES -->
+  <div class="section-card">
+    <div class="section-header"><div class="section-icon">🏢</div><h3 class="section-title">Clientes</h3></div>
+    <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+      <input type="text" id="cfg-cliente-input" placeholder="Nome do cliente..." style="flex:1;min-width:200px;">
+      <button class="btn btn-primary" onclick="cfgAdd('clientes','cfg-cliente-input','cfg-clientes-list')">+ Adicionar</button>
+    </div>
+    <div id="cfg-clientes-list"></div>
+  </div>
+
+  <!-- RESPONSÁVEIS -->
+  <div class="section-card">
+    <div class="section-header"><div class="section-icon">👷</div><h3 class="section-title">Responsáveis</h3></div>
+    <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+      <input type="text" id="cfg-responsavel-input" placeholder="Nome do responsável..." style="flex:1;min-width:200px;">
+      <button class="btn btn-primary" onclick="cfgAdd('responsaveis','cfg-responsavel-input','cfg-responsaveis-list')">+ Adicionar</button>
+    </div>
+    <div id="cfg-responsaveis-list"></div>
+  </div>
+
+  <!-- PRODUTOS -->
+  <div class="section-card">
+    <div class="section-header"><div class="section-icon">📦</div><h3 class="section-title">Produtos</h3></div>
+    <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+      <input type="text" id="cfg-produto-input" placeholder="Nome do produto..." style="flex:1;min-width:200px;">
+      <button class="btn btn-primary" onclick="cfgAdd('produtos','cfg-produto-input','cfg-produtos-list')">+ Adicionar</button>
+    </div>
+    <div id="cfg-produtos-list"></div>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<!-- FOOTER -->
+<footer style="background:var(--bg-card);border-top:1px solid var(--border);margin-top:32px;padding:20px 24px;text-align:center;">
+  <div style="max-width:860px;margin:0 auto;">
+    <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:10px;">
+      <div style="background:var(--yellow);color:#111;font-family:'Syne',sans-serif;font-weight:800;font-size:10px;letter-spacing:.08em;padding:4px 10px;border-radius:5px;">Tiger Rentank</div>
+      <span style="font-size:11px;color:var(--text-muted);">×</span>
+      <span style="font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--text-muted);">CheckFlowUp SaaS</span>
+    </div>
+    <p style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">Sistema Multi-Módulo Unificado — Transbordo · Logística Interna · Logística Externa</p>
+    <p style="font-size:10px;color:var(--text-dim);">© 2026 CheckFlowUp · LGPD Compliant · Desenvolvido por Aldemir Garbino</p>
+  </div>
+</footer>
+
+</div><!-- /app-wrapper -->
+
+<script>
+'use strict';
+// ════════════════════════════════════════════════════════════
+//  MÓDULOS — DEFINIÇÃO COMPLETA
+// ════════════════════════════════════════════════════════════
+const MODULES = {
+  transbordo: {
+    name: 'Transbordo',
+    icon: '🔄',
+    color: 'transbordo',
+    cssColor: '#3B82F6',
+    cssGlow: 'rgba(59,130,246,0.22)',
+    dbStore: 'checklists_transbordo',
+    draftKey: 'tiger_draft_transbordo',
+    pdfTitle: 'CHECKLIST DE TRANSBORDO',
+    // ── SEÇÃO 1: DADOS GERAIS (Imagem 1) ──
+    campos: [
+      { id:'tipoOperacao',    label:'Tipo de Operação *',      type:'select', options:['','Expedição','Recebimento'], span:1 },
+      { id:'tipoCarga',       label:'Tipo de Carga *',          type:'select', options:['','Contentores','IBCs / Tambores'], span:1 },
+      { id:'cliente',         label:'Cliente',                  type:'select', options:[''], span:1 },
+      { id:'data',            label:'Data da Inspeção * (automática)', type:'date', placeholder:'', span:1, readonly:true },
+      { id:'responsavel',     label:'Responsável *',            type:'select', options:[''], span:1 },
+      { id:'produto',         label:'Produto',                  type:'select', options:[''], span:1 },
+      { id:'lote',            label:'Lote',                     type:'text',   placeholder:'Número do lote',  span:1 },
+      { id:'lacres',          label:'Lacres',                   type:'text',   placeholder:'Numeração dos lacres', span:1 },
+      { id:'validadeProduto', label:'Validade do Produto',      type:'text',   placeholder:'dd/mm/aaaa',      span:2 },
+    ],
+    // ── SEÇÃO 2: INSPEÇÃO DO EQUIPAMENTO (Imagem 2) ──
+    camposEquipamento: [
+      { id:'serialChassi',      label:'Serial/Chassi',              type:'text', placeholder:'' },
+      { id:'modeloEquipamento', label:'Modelo do Equipamento',      type:'text', placeholder:'' },
+      { id:'validadeTeste',     label:'Validade do Teste',          type:'text', placeholder:'dd/mm/aaaa' },
+      { id:'numeroGPS',         label:'Número do GPS',              type:'text', placeholder:'' },
+      { id:'eslingaNumeracao',  label:'Eslinga - Numeração',        type:'text', placeholder:'' },
+      { id:'eslingaValidade',   label:'Eslinga - Data de Validade', type:'text', placeholder:'dd/mm/aaaa' },
+    ],
+    hasEquipamentoInspecao: true,
+    // ── INSPEÇÃO DINÂMICA POR TIPO DE CARGA ──
+    // Contentores (Imagem 3) e Tambores/IBCs (Imagem 4)
+    inspecaoContentores: [
+      'As eslingas estão livres de torções ou dobras?',
+      'O equipamento está limpo e livre de resíduos?',
+      'Há vazamentos visíveis?',
+      'As válvulas estão funcionando corretamente?',
+      'Os lacres estão intactos?',
+      'A estrutura apresenta danos ou corrosão?',
+      'O Contentor está livre de Objetos Soltos, que podem cair durante a movimentação de carga?',
+      'A documentação (ficha de emergência, etc.) está acomodada no local adequado?',
+      'A validade dos testes (carga/hidrostático) é superior a 90 dias?',
+      'Caps Estão Limpos e Aptos para utilização.',
+      'As etiquetas de risco e identificação do produto estão corretas e visíveis?',
+    ],
+    inspecaoTambores: [
+      'Os tambores estão íntegros, sem amassados?',
+      'As tampas estão bem vedadas?',
+      'Há vazamentos?',
+      'A rotulagem está legível e correta?',
+      'Os paletes estão em bom estado?',
+      'O empilhamento está adequado?',
+      'Há contaminação externa visível?',
+      'Os IBCs apresentam rachaduras?',
+      'Caps Estão Limpos e Aptos para utilização.',
+      'As etiquetas de risco e identificação do produto estão corretas e visíveis?',
+    ],
+    inspecao: [
+      'As eslingas estão livres de torções ou dobras?',
+      'O equipamento está limpo e livre de resíduos?',
+      'Há vazamentos visíveis?',
+      'As válvulas estão funcionando corretamente?',
+      'Os lacres estão intactos?',
+      'A estrutura apresenta danos ou corrosão?',
+      'O Contentor está livre de Objetos Soltos, que podem cair durante a movimentação de carga?',
+      'A documentação (ficha de emergência, etc.) está acomodada no local adequado?',
+      'A validade dos testes (carga/hidrostático) é superior a 90 dias?',
+      'Caps Estão Limpos e Aptos para utilização.',
+      'As etiquetas de risco e identificação do produto estão corretas e visíveis?',
+    ],
+    servicos: [],
+    hasServicos: false,
+    statusPor: 'geral',
+    requiredIds: ['tipoOperacao','tipoCarga','responsavel','data'],
+  },
+  interna: {
+    name: 'Logística Interna',
+    icon: '🏭',
+    color: 'interna',
+    cssColor: '#22C55E',
+    cssGlow: 'rgba(34,197,94,0.22)',
+    dbStore: 'checklists_interna',
+    draftKey: 'tiger_draft_interna',
+    pdfTitle: 'CHECKLIST DE LOGÍSTICA INTERNA',
+    campos: [
+      { id:'responsavel',   label:'Responsável *',    type:'text', placeholder:'Nome do responsável', span:1 },
+      { id:'data',          label:'Data *',            type:'date', placeholder:'',                    span:1 },
+      { id:'cliente',       label:'Cliente *',         type:'text', placeholder:'Nome do cliente',     span:1 },
+      { id:'motivo',        label:'Motivo *',          type:'select', options:['','Manutenção','Entrega','Devolução','Empréstimo','Outros'], span:1 },
+      { id:'horaInicial',   label:'Hora Inicial *',    type:'text', placeholder:'HH:MM', inputmode:'numeric', maxlength:'5', span:1 },
+      { id:'horaFinal',     label:'Hora Final *',      type:'text', placeholder:'HH:MM', inputmode:'numeric', maxlength:'5', span:1 },
+    ],
+    servicos: [],
+    hasServicos: false,
+    hasEquipamentos: true,
+    // ── INSPEÇÃO COM 4 GRUPOS E OPÇÃO EXTRA "TROCA" ──
+    inspecaoGrupos: [
+      {
+        titulo: '1° Portas',
+        itens: [
+          'Porta Lateral Direita — Condição geral? (amassada, emperrada, com furo ou rasgo)',
+          'Porta Lateral Esquerda — Condição geral? (amassada, emperrada, com furo ou rasgo)',
+          'Alavanca da Porta — Aciona corretamente? (efeito mola, amassada ou quebrada)',
+          'Haste da Porta — Sem dobras ou danos? (amassada, quebrada ou emperrada)',
+          'Trinco da Porta — Trava e destrava corretamente?',
+          'Guia da Haste — Está preso e sem folga excessiva?',
+          'Unha da Haste — Encaixe correto, sem deformação?',
+          'Alça da Porta — Firme e sem avarias?',
+          'Borracha da Porta — Vedação íntegra, sem rasgos?',
+          'Corrente da Trava da Porta — Presente e funcional?',
+          'Gancho Lateral da Trava da Porta — Encaixa e retém corretamente?',
+          'Proteção Superior da Porta — Sem danos ou folgas? (amassamento, trinca)',
+          'Proteção Inferior da Porta — Sem danos ou folgas? (amassamento, trinca)',
+          'Dobradiça — Movimento suave, sem corrosão excessiva?',
+        ],
+        comTroca: true,
+      },
+      {
+        titulo: '2° Tampa',
+        itens: [
+          'Tampa — Condição geral, sem amassados ou deformações? (incluir trinca)',
+          'Trinco da Tampa — Trava e destrava corretamente?',
+          'Unha da Tampa — Encaixe correto, sem deformação?',
+          'Alça da Tampa — Firme e sem avarias?',
+          'Borracha da Tampa — Vedação íntegra, sem rasgos?',
+          'Borracha Batente da Tampa — Íntegra e bem fixada?',
+          'Corrente da Trava da Tampa — Presente e funcional?',
+          'Barra Fixa de Vedação da Tampa — Sem folgas ou deformações?',
+          'Amortecedor da Tampa — Funciona corretamente, sem vazamento?',
+          'Passagem de Lacre da Tampa — Presente e sem obstrução?',
+        ],
+        comTroca: true,
+      },
+      {
+        titulo: '3° Amarração e Fixação',
+        itens: [
+          'Argola de Amarração Externa — Firme, sem rachaduras ou deformações?',
+          'Argola de Amarração Interna — Firme, sem rachaduras ou deformações?',
+          'Gancho de Amarração Externo — Sem dobras, encaixe correto?',
+        ],
+        comTroca: true,
+      },
+      {
+        titulo: '4° Estrutura e Identificação',
+        itens: [
+          'Lateral Direita — Sem amassados, furos ou corrosão estrutural?',
+          'Lateral Esquerda — Sem amassados, furos ou corrosão estrutural?',
+          'Piso — Sem danos, deformações ou acúmulo de resíduos?',
+          'Teto — Sem amassados, furos ou corrosão?',
+          'Número de Série (Teto e Laterais) — Legível e conforme cadastro?',
+        ],
+        comTroca: false, // último grupo: SIM – NÃO – N/A (sem Troca)
+      },
+    ],
+    // inspecao plana para compatibilidade com coleta/PDF
+    inspecao: [
+      'Porta Lateral Direita — Condição geral? (amassada, emperrada, com furo ou rasgo)',
+      'Porta Lateral Esquerda — Condição geral? (amassada, emperrada, com furo ou rasgo)',
+      'Alavanca da Porta — Aciona corretamente? (efeito mola, amassada ou quebrada)',
+      'Haste da Porta — Sem dobras ou danos? (amassada, quebrada ou emperrada)',
+      'Trinco da Porta — Trava e destrava corretamente?',
+      'Guia da Haste — Está preso e sem folga excessiva?',
+      'Unha da Haste — Encaixe correto, sem deformação?',
+      'Alça da Porta — Firme e sem avarias?',
+      'Borracha da Porta — Vedação íntegra, sem rasgos?',
+      'Corrente da Trava da Porta — Presente e funcional?',
+      'Gancho Lateral da Trava da Porta — Encaixa e retém corretamente?',
+      'Proteção Superior da Porta — Sem danos ou folgas? (amassamento, trinca)',
+      'Proteção Inferior da Porta — Sem danos ou folgas? (amassamento, trinca)',
+      'Dobradiça — Movimento suave, sem corrosão excessiva?',
+      'Tampa — Condição geral, sem amassados ou deformações? (incluir trinca)',
+      'Trinco da Tampa — Trava e destrava corretamente?',
+      'Unha da Tampa — Encaixe correto, sem deformação?',
+      'Alça da Tampa — Firme e sem avarias?',
+      'Borracha da Tampa — Vedação íntegra, sem rasgos?',
+      'Borracha Batente da Tampa — Íntegra e bem fixada?',
+      'Corrente da Trava da Tampa — Presente e funcional?',
+      'Barra Fixa de Vedação da Tampa — Sem folgas ou deformações?',
+      'Amortecedor da Tampa — Funciona corretamente, sem vazamento?',
+      'Passagem de Lacre da Tampa — Presente e sem obstrução?',
+      'Argola de Amarração Externa — Firme, sem rachaduras ou deformações?',
+      'Argola de Amarração Interna — Firme, sem rachaduras ou deformações?',
+      'Gancho de Amarração Externo — Sem dobras, encaixe correto?',
+      'Lateral Direita — Sem amassados, furos ou corrosão estrutural?',
+      'Lateral Esquerda — Sem amassados, furos ou corrosão estrutural?',
+      'Piso — Sem danos, deformações ou acúmulo de resíduos?',
+      'Teto — Sem amassados, furos ou corrosão?',
+      'Número de Série (Teto e Laterais) — Legível e conforme cadastro?',
+    ],
+    statusPor: 'equipamentos',
+    requiredIds: ['responsavel','data','cliente','motivo','horaInicial','horaFinal'],
+  },
+  externa: {
+    name: 'Logística Externa',
+    icon: '🚛',
+    color: 'externa',
+    cssColor: '#FFCC00',
+    cssGlow: 'rgba(255,204,0,0.22)',
+    dbStore: 'checklists_externa',
+    draftKey: 'tiger_draft_externa',
+    pdfTitle: 'RELATÓRIO DE ATENDIMENTO EXTERNO',
+    campos: [
+      { id:'inspetor1',    label:'Inspeção Tiger 1 *',  type:'text', placeholder:'Nome do colaborador',      span:1 },
+      { id:'inspetor2',    label:'Inspeção Tiger 2',     type:'text', placeholder:'Segundo colaborador',      span:1 },
+      { id:'data',         label:'Data *',               type:'date', placeholder:'',                         span:1 },
+      { id:'placa',        label:'Veículo / Placa *',   type:'text', placeholder:'ABC-1234', maxlength:'8',  span:1 },
+      { id:'horaChegada',  label:'Hora de Chegada *',   type:'text', placeholder:'HH:MM', inputmode:'numeric', maxlength:'5', span:1 },
+      { id:'horaSaida',    label:'Hora de Saída *',     type:'text', placeholder:'HH:MM', inputmode:'numeric', maxlength:'5', span:1 },
+      { id:'cliente',      label:'Cliente *',            type:'text', placeholder:'Nome completo do cliente', span:2 },
+    ],
+    servicos: ['CERTIFICAÇÃO VISUAL','CERTIFICAÇÃO REMOTA','PARTÍCULA MAGNÉTICA','LÍQUIDO PENETRANTE','CORRENTE PARASITA','MANUTENÇÃO PREVENTIVA','MANUTENÇÃO CORRETIVA','INSTALAÇÃO DE GPS','SUBSTITUIÇÃO DE ESLINGA','AVALIAÇÃO TÉCNICA'],
+    hasServicos: true,
+    inspecao: [
+      'As datas de vencimento dos testes do equipamento estão superiores a 120 dias do vencimento?',
+      'O equipamento está em bom estado, livre de danos na pintura refletiva, deformação ou corrosão excessiva, rasgos e trincas?',
+      'Os equipamentos encontram-se livres de objetos soltos e corrosões?',
+      'As portas, tampas, dobradiças, pinos de segurança e borrachas de vedação estão em bom estado e funcionamento?',
+      'Os anéis "D" de amarração estão conformes, livres de corrosão em excesso, deformações ou pontos de ruptura?',
+      'As bolsas de empilhadeira estão conformes, livres de corrosão em excesso e deformações?',
+      'As placas de identificação dos equipamentos estão em bom estado e com as marcações legíveis?',
+      'As datas de vencimento dos testes da eslinga estão superiores a 120 dias?',
+      'A eslinga está com o cabo lubrificado? Anéis, sapatilhos e punhos estão pintados?',
+      'A eslinga está livre de avarias (sapatilho amassado, fio rompido, deformação excessiva, alma exposta etc.)?',
+      'Todas as manilhas estão com contra-pinos?',
+      'Equipamento e eslinga estão de acordo com o color code do cliente?',
+    ],
+    hasEquipamentos: true,
+    statusPor: 'equipamentos',
+    requiredIds: ['inspetor1','data','placa','horaChegada','horaSaida','cliente'],
+  },
+};
+
+// ════════════════════════════════════════════════════════════
+//  ESTADO GLOBAL
+// ════════════════════════════════════════════════════════════
+let currentModule = null;
+let checklists = [];
+let signaturePad, signaturePadCliente;
+let equipamentoCount = 1;
+let fotosTemp = [];
+let draftTimer = null;
+let editingId = null;
+let db = null;
+const DB_NAME = 'TigerRentankSaaSDB', DB_VERSION = 2;
+const ALL_STORES = ['checklists_transbordo','checklists_interna','checklists_externa'];
+
+// ════════════════════════════════════════════════════════════
+//  INDEXEDDB
+// ════════════════════════════════════════════════════════════
+function openDB() {
+  return new Promise((res, rej) => {
+    if (db) { res(db); return; }
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = e => {
+      const idb = e.target.result;
+      ALL_STORES.forEach(store => {
+        if (!idb.objectStoreNames.contains(store)) idb.createObjectStore(store, { keyPath: 'id' });
+      });
+    };
+    req.onsuccess = e => { db = e.target.result; res(db); };
+    req.onerror = e => rej(e.target.error);
+  });
+}
+const dbOp = (store, mode, fn) => openDB().then(idb => new Promise((res, rej) => {
+  const tx = idb.transaction(store, mode);
+  const req = fn(tx.objectStore(store));
+  req.onsuccess = e => res(e.target.result);
+  req.onerror = e => rej(e.target.error);
+}));
+const dbSave   = (store, d)  => dbOp(store, 'readwrite', s => s.put(d));
+const dbDelete = (store, id) => dbOp(store, 'readwrite', s => s.delete(id));
+const dbAll    = (store)     => dbOp(store, 'readonly',  s => s.getAll());
+const dbClear  = (store)     => dbOp(store, 'readwrite', s => s.clear());
+
+// ════════════════════════════════════════════════════════════
+//  SELEÇÃO DE MÓDULO
+// ════════════════════════════════════════════════════════════
+function selectModule(modKey) {
+  if (modKey === 'visao') {
+    openVisaoGeral();
+    return;
+  }
+  currentModule = MODULES[modKey];
+  document.getElementById('module-selector').style.display = 'none';
+  document.getElementById('app-wrapper').style.display = 'block';
+
+  // Cor do módulo
+  document.documentElement.style.setProperty('--mod-color', currentModule.cssColor);
+  document.documentElement.style.setProperty('--mod-glow', currentModule.cssGlow);
+
+  // Tag do módulo no header
+  const tag = document.getElementById('mod-tag');
+  tag.textContent = currentModule.icon + ' ' + currentModule.name;
+  tag.className = 'mod-tag ' + currentModule.color;
+
+  // Construir formulário
+  buildForm();
+  initSignaturePads();
+  loadTheme();
+  setupEventListeners();
+  setupDraftAutoSave();
+
+  openDB().then(() => dbAll(currentModule.dbStore))
+    .then(data => { checklists = data; updateHistoryList(); updateDashboard(); })
+    .catch(e => { console.error(e); showNotification('Erro ao carregar dados.', 'error'); });
+
+  loadDraft();
+}
+
+function backToSelector() {
+  clearInterval(draftTimer);
+  currentModule = null;
+  checklists = [];
+  editingId = null;
+  fotosTemp = [];
+  // Remove seção extra do transbordo se existir
+  const secEq = document.getElementById('section-equip-inspecao');
+  if (secEq) secEq.remove();
+  document.getElementById('app-wrapper').style.display = 'none';
+  document.getElementById('module-selector').style.display = 'flex';
+  document.documentElement.style.setProperty('--mod-color', 'var(--yellow)');
+  document.documentElement.style.setProperty('--mod-glow', 'var(--yellow-glow)');
+}
+
+function openVisaoGeral() {
+  currentModule = {
+    name: 'Visão Geral',
+    icon: '📊',
+    color: 'visao',
+    cssColor: '#FF9900',
+    cssGlow: 'rgba(255,153,0,0.22)',
+    dbStore: null,
+  };
+  document.getElementById('module-selector').style.display = 'none';
+  document.getElementById('app-wrapper').style.display = 'block';
+  document.documentElement.style.setProperty('--mod-color', '#FF9900');
+  document.documentElement.style.setProperty('--mod-glow', 'rgba(255,153,0,0.22)');
+
+  const tag = document.getElementById('mod-tag');
+  tag.textContent = '📊 Visão Geral';
+  tag.className = 'mod-tag';
+  tag.style.background = 'rgba(255,153,0,.15)';
+  tag.style.color = '#FF9900';
+  tag.style.border = '1px solid #FF9900';
+
+  loadTheme();
+  document.getElementById('main-nav').innerHTML = `
+    <a href="#" class="nav-tab active" data-tab="visao-geral"><span>📊</span> Consolidado</a>
+  `;
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.getElementById('visao-geral').classList.add('active');
+  document.getElementById('progress-wrap').style.display = 'none';
+
+  document.querySelectorAll('.nav-tab').forEach(t =>
+    t.addEventListener('click', e => { e.preventDefault(); }));
+
+  document.getElementById('btn-trocar').addEventListener('click', backToSelector);
+  document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+
+  buildVisaoGeral();
+}
+
+async function buildVisaoGeral() {
+  const el = document.getElementById('visao-content');
+  el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⏳</div><p>Carregando dados...</p></div>';
+  await openDB();
+  const [t, i, e] = await Promise.all([dbAll('checklists_transbordo'), dbAll('checklists_interna'), dbAll('checklists_externa')]);
+  const totalT = t.length, totalI = i.length, totalE = e.length, total = totalT + totalI + totalE;
+  const all = [...t.map(x=>({...x,_mod:'transbordo'})),...i.map(x=>({...x,_mod:'interna'})),...e.map(x=>({...x,_mod:'externa'}))];
+  const apr = all.filter(c=>c.status==='APROVADO').length;
+  const rep = all.filter(c=>c.status==='REPROVADO').length;
+  const pen = all.filter(c=>c.status==='PENDENTE').length;
+  const pct = v => total ? Math.round((v/total)*100) : 0;
+
+  el.innerHTML = `
+    <div class="visao-grid">
+      <div class="visao-card transbordo" onclick="selectModule('transbordo')">
+        <div style="font-size:22px;margin-bottom:8px;">🔄</div>
+        <div class="visao-card-num" style="color:var(--blue)">${totalT}</div>
+        <div class="visao-card-label">Transbordo <span class="mod-chip chip-transbordo">registros</span></div>
+      </div>
+      <div class="visao-card interna" onclick="selectModule('interna')">
+        <div style="font-size:22px;margin-bottom:8px;">🏭</div>
+        <div class="visao-card-num" style="color:var(--green)">${totalI}</div>
+        <div class="visao-card-label">Log. Interna <span class="mod-chip chip-interna">registros</span></div>
+      </div>
+      <div class="visao-card externa" onclick="selectModule('externa')">
+        <div style="font-size:22px;margin-bottom:8px;">🚛</div>
+        <div class="visao-card-num" style="color:var(--yellow-dark)">${totalE}</div>
+        <div class="visao-card-label">Log. Externa <span class="mod-chip chip-externa">registros</span></div>
+      </div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-number" style="color:#FF9900">${total}</div><div class="stat-label">Total Geral</div></div>
+      <div class="stat-card"><div class="stat-number" style="color:var(--success)">${apr}</div><div class="stat-label">Aprovados</div></div>
+      <div class="stat-card"><div class="stat-number" style="color:var(--danger)">${rep}</div><div class="stat-label">Reprovados</div></div>
+      <div class="stat-card"><div class="stat-number" style="color:var(--warning)">${pen}</div><div class="stat-label">Pendentes</div></div>
+      <div class="stat-card"><div class="stat-number" style="color:#FF9900">${pct(apr)}%</div><div class="stat-label">Taxa Aprov.</div></div>
+    </div>
+    ${total > 0 ? `
+    <div class="section-card">
+      <p class="chart-title">📊 Distribuição por Módulo</p>
+      <div class="chart-bar-wrap">
+        <div class="chart-bar-row"><span class="chart-bar-label">Transbordo</span><div class="chart-bar-track"><div class="chart-bar-fill" style="width:${total?Math.round(totalT/total*100):0}%;background:var(--blue);">${totalT}</div></div></div>
+        <div class="chart-bar-row"><span class="chart-bar-label">Log. Interna</span><div class="chart-bar-track"><div class="chart-bar-fill" style="width:${total?Math.round(totalI/total*100):0}%;background:var(--green);">${totalI}</div></div></div>
+        <div class="chart-bar-row"><span class="chart-bar-label">Log. Externa</span><div class="chart-bar-track"><div class="chart-bar-fill" style="width:${total?Math.round(totalE/total*100):0}%;background:var(--yellow);">${totalE}</div></div></div>
+      </div>
+    </div>
+    <div class="section-card">
+      <p class="chart-title">📋 Últimos Registros (todos os módulos)</p>
+      ${all.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,8).map(item => {
+        const bc = item.status==='APROVADO'?'badge-approved':item.status==='REPROVADO'?'badge-rejected':'badge-pending';
+        const mc = item._mod==='transbordo'?'chip-transbordo':item._mod==='interna'?'chip-interna':'chip-externa';
+        const mn = item._mod==='transbordo'?'Transbordo':item._mod==='interna'?'Interna':'Externa';
+        return `<div class="history-card" style="margin-bottom:7px;">
+          <div class="history-info">
+            <div class="history-client">${item.cliente||item.responsavel||'—'}</div>
+            <div class="history-meta">
+              <span class="mod-chip ${mc}">${mn}</span>
+              <span class="meta-dot">·</span>
+              <span>📅 ${fmtDate(item.data)}</span>
+              <span class="meta-dot">·</span>
+              <span class="status-badge ${bc}">${item.status}</span>
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>` : ''}
+  `;
+}
+
+// ════════════════════════════════════════════════════════════
+//  BUILD FORM DINÂMICO
+// ════════════════════════════════════════════════════════════
+function buildInspecaoHTML(perguntas, comTroca) {
+  return perguntas.map((q, i) => {
+    const n = i + 1;
+    const troca = comTroca !== false
+      ? `<div class="radio-pill warning-pill"><input type="radio" id="insp-troca-${n}" name="insp-${n}" value="TROCA"><label for="insp-troca-${n}">Troca</label></div>`
+      : '';
+    return `<div class="inspection-item">
+      <p class="inspection-question"><span class="insp-num">${n}.</span> ${q}</p>
+      <div class="radio-group">
+        <div class="radio-pill success"><input type="radio" id="insp-sim-${n}" name="insp-${n}" value="SIM"><label for="insp-sim-${n}">Sim</label></div>
+        <div class="radio-pill danger"><input type="radio" id="insp-nao-${n}" name="insp-${n}" value="NÃO"><label for="insp-nao-${n}">Não</label></div>
+        ${troca}
+        <div class="radio-pill"><input type="radio" id="insp-na-${n}" name="insp-${n}" value="N/A"><label for="insp-na-${n}">N/A</label></div>
+      </div>
+      <div class="insp-obs-wrap"><label class="insp-obs-label">⚠ Observação sobre o item:</label><textarea class="insp-item-obs" placeholder="Descreva o problema encontrado..."></textarea></div>
+    </div>`;
+  }).join('');
+}
+
+function buildInspecaoGruposHTML(grupos) {
+  let globalIdx = 0;
+  return grupos.map(grupo => {
+    const itensHTML = grupo.itens.map((q) => {
+      globalIdx++;
+      const n = globalIdx;
+      const troca = grupo.comTroca
+        ? `<div class="radio-pill warning-pill"><input type="radio" id="insp-troca-${n}" name="insp-${n}" value="TROCA"><label for="insp-troca-${n}">Troca</label></div>`
+        : '';
+      return `<div class="inspection-item">
+        <p class="inspection-question"><span class="insp-num">${n}.</span> ${q}</p>
+        <div class="radio-group">
+          <div class="radio-pill success"><input type="radio" id="insp-sim-${n}" name="insp-${n}" value="SIM"><label for="insp-sim-${n}">Sim</label></div>
+          <div class="radio-pill danger"><input type="radio" id="insp-nao-${n}" name="insp-${n}" value="NÃO"><label for="insp-nao-${n}">Não</label></div>
+          ${troca}
+          <div class="radio-pill"><input type="radio" id="insp-na-${n}" name="insp-${n}" value="N/A"><label for="insp-na-${n}">N/A</label></div>
+        </div>
+        <div class="insp-obs-wrap"><label class="insp-obs-label">⚠ Observação sobre o item:</label><textarea class="insp-item-obs" placeholder="Descreva o problema encontrado..."></textarea></div>
+      </div>`;
+    }).join('');
+    return `<div class="insp-grupo">
+      <div class="insp-grupo-titulo">${grupo.titulo}</div>
+      ${itensHTML}
+    </div>`;
+  }).join('');
+}
+
+function rebindInspecaoEvents() {
+  document.querySelectorAll('#inspecao-itens input[type=radio]').forEach(r =>
+    r.addEventListener('change', function() {
+      updateProgress();
+      const item = this.closest('.inspection-item');
+      const obsWrap = item.querySelector('.insp-obs-wrap');
+      if (!obsWrap) return;
+      // Mostrar obs se NÃO ou TROCA
+      if (this.value === 'NÃO' || this.value === 'TROCA') {
+        obsWrap.classList.add('visible'); item.classList.add('has-nao');
+      } else {
+        obsWrap.classList.remove('visible'); obsWrap.querySelector('textarea').value = ''; item.classList.remove('has-nao');
+      }
+    }));
+}
+
+function buildForm() {
+  const mod = currentModule;
+
+  // Reset nav — transbordo tem aba extra de Configurações
+  if (mod.color === 'transbordo') {
+    document.getElementById('main-nav').innerHTML = `
+      <a href="#" class="nav-tab active" data-tab="checklist"><span>📋</span> Checklist</a>
+      <a href="#" class="nav-tab" data-tab="historico"><span>📂</span> Histórico</a>
+      <a href="#" class="nav-tab" data-tab="dashboard"><span>📊</span> Dashboard</a>
+      <a href="#" class="nav-tab" data-tab="configuracoes"><span>⚙️</span> Config.</a>
+    `;
+  } else {
+    document.getElementById('main-nav').innerHTML = `
+      <a href="#" class="nav-tab active" data-tab="checklist"><span>📋</span> Checklist</a>
+      <a href="#" class="nav-tab" data-tab="historico"><span>📂</span> Histórico</a>
+      <a href="#" class="nav-tab" data-tab="dashboard"><span>📊</span> Dashboard</a>
+    `;
+  }
+
+  // Título
+  document.getElementById('form-title').textContent = 'Novo Registro — ' + mod.name;
+
+  // ── Campos de dados gerais
+  const grid = document.getElementById('form-dados-grid');
+  grid.className = 'form-grid';
+  if (mod.campos.some(c => c.span === 3)) grid.style.gridTemplateColumns = '1fr 1fr 1fr';
+  else grid.style.gridTemplateColumns = '1fr 1fr';
+  grid.innerHTML = mod.campos.map(c => {
+    const spanClass = c.span === 2 ? 'span-2' : c.span === 3 ? 'span-3' : '';
+    let input = '';
+    if (c.type === 'select') {
+      input = `<select id="${c.id}">${c.options.map(o => `<option value="${o}">${o || 'Selecione...'}</option>`).join('')}</select>`;
+    } else {
+      const extras = Object.entries(c).filter(([k]) => ['placeholder','maxlength','inputmode'].includes(k)).map(([k,v]) => `${k}="${v}"`).join(' ');
+      const ro = c.readonly ? 'readonly' : '';
+      input = `<input type="${c.type}" id="${c.id}" ${extras} ${ro}>`;
+    }
+    return `<div class="form-group ${spanClass}">${c.id==='placa' && mod.color==='externa' ? `<label for="${c.id}">${c.label}</label>${input}<span class="field-hint" id="hint-placa"></span>` : c.id==='horaChegada' ? `<label for="${c.id}">${c.label}</label>${input}<span class="field-hint" id="hint-hora-chegada"></span>` : c.id==='horaSaida' ? `<label for="${c.id}">${c.label}</label>${input}<span class="field-hint" id="hint-hora-saida"></span>` : `<label for="${c.id}">${c.label}</label>${input}`}</div>`;
+  }).join('');
+
+  // Data default (sempre hoje; readonly no transbordo = auto)
+  const dataEl = document.getElementById('data');
+  if (dataEl) dataEl.value = new Date().toISOString().split('T')[0];
+
+  // Popular selects de configuração (transbordo)
+  if (mod.color === 'transbordo') cfgUpdateSelects();
+
+  // ── Seção INSPEÇÃO DO EQUIPAMENTO (só transbordo)
+  let secEqInsp = document.getElementById('section-equip-inspecao');
+  if (mod.hasEquipamentoInspecao) {
+    if (!secEqInsp) {
+      // Inserir após section-dados
+      const secDados = document.getElementById('section-dados');
+      secEqInsp = document.createElement('div');
+      secEqInsp.id = 'section-equip-inspecao';
+      secEqInsp.className = 'section-card';
+      secDados.insertAdjacentElement('afterend', secEqInsp);
+    }
+    secEqInsp.style.display = 'block';
+    secEqInsp.innerHTML = `
+      <div class="section-header"><div class="section-icon">🔩</div><h3 class="section-title">Inspeção do Equipamento</h3></div>
+      <div class="form-grid" style="grid-template-columns:1fr 1fr;">
+        ${mod.camposEquipamento.map(c => `
+          <div class="form-group">
+            <label for="eq-${c.id}">${c.label}</label>
+            <input type="text" id="eq-${c.id}" placeholder="${c.placeholder}">
+          </div>`).join('')}
+      </div>`;
+  } else {
+    if (secEqInsp) secEqInsp.style.display = 'none';
+  }
+
+  // ── Equipamentos (só externa)
+  document.getElementById('section-equipamentos').style.display = mod.hasEquipamentos ? 'block' : 'none';
+  if (mod.hasEquipamentos) {
+    document.getElementById('equipamentos-container').innerHTML = '';
+    equipamentoCount = 1;
+    addEquipamento();
+  }
+
+  // ── Serviços (oculto no transbordo)
+  document.getElementById('section-servicos').style.display = mod.hasServicos ? 'block' : 'none';
+  document.getElementById('servicos-grid').innerHTML = mod.hasServicos ? mod.servicos.map((s, i) => {
+    const id = 'svc-' + i;
+    return `<input type="checkbox" class="service-checkbox" id="${id}" name="servicos" value="${s}"><label class="service-label" for="${id}">${s.replace('CERTIFICAÇÃO','CERT.').replace('MANUTENÇÃO','MANUT.').replace('MOVIMENTAÇÃO','MOVIM.').replace('SUBSTITUIÇÃO','SUBST.').replace('VERIFICAÇÃO','VERIF.')}</label>`;
+  }).join('') : '';
+
+  // ── Assinatura do Cliente (oculta no transbordo)
+  const secAssinaturaCliente = document.getElementById('section-assinatura-cliente');
+  if (secAssinaturaCliente) secAssinaturaCliente.style.display = mod.color === 'externa' ? 'block' : 'none';
+
+  // ── Inspeção: transbordo tem inspeção dinâmica por tipo de carga
+  if (mod.hasEquipamentoInspecao) {
+    // Atualiza título da seção de inspeção com tipo de carga
+    const inspecaoCard = document.getElementById('inspecao-itens').closest('.section-card');
+    const inspecaoHeader = inspecaoCard ? inspecaoCard.querySelector('.section-title') : null;
+    if (inspecaoHeader) inspecaoHeader.textContent = 'Inspeção da Carga — Contentores';
+    document.getElementById('inspecao-itens').innerHTML = buildInspecaoHTML(mod.inspecaoContentores);
+    // Listener no tipoCarga para trocar perguntas dinamicamente
+    const tipoCargaEl = document.getElementById('tipoCarga');
+    if (tipoCargaEl) {
+      tipoCargaEl.addEventListener('change', function() {
+        const val = this.value;
+        const inspecaoCard2 = document.getElementById('inspecao-itens').closest('.section-card');
+        const inspecaoHeader2 = inspecaoCard2 ? inspecaoCard2.querySelector('.section-title') : null;
+        let perguntas, titulo;
+        if (val === 'Tambores/IBCs') {
+          perguntas = mod.inspecaoTambores;
+          titulo = 'Inspeção da Carga — Tambores/IBCs';
+        } else if (val === 'Contentores') {
+          perguntas = mod.inspecaoContentores;
+          titulo = 'Inspeção da Carga — Contentores';
+        } else {
+          perguntas = mod.inspecaoContentores;
+          titulo = val ? 'Inspeção da Carga — ' + val : 'Inspeção da Carga';
+        }
+        if (inspecaoHeader2) inspecaoHeader2.textContent = titulo;
+        document.getElementById('inspecao-itens').innerHTML = buildInspecaoHTML(perguntas);
+        rebindInspecaoEvents();
+        updateProgress();
+      });
+    }
+  } else {
+    // Outros módulos
+    const inspecaoCard = document.getElementById('inspecao-itens').closest('.section-card');
+    const inspecaoHeader = inspecaoCard ? inspecaoCard.querySelector('.section-title') : null;
+    if (mod.inspecaoGrupos) {
+      // Módulo com inspeção por grupos (ex: Logística Interna)
+      if (inspecaoHeader) inspecaoHeader.textContent = 'Inspeção do Equipamento';
+      document.getElementById('inspecao-itens').innerHTML = buildInspecaoGruposHTML(mod.inspecaoGrupos);
+    } else {
+      if (inspecaoHeader) inspecaoHeader.textContent = 'Inspeção';
+      document.getElementById('inspecao-itens').innerHTML = buildInspecaoHTML(mod.inspecao);
+    }
+  }
+
+  switchTab('checklist');
+}
+
+// ════════════════════════════════════════════════════════════
+//  EQUIPAMENTO (apenas externa)
+// ════════════════════════════════════════════════════════════
+function getEquipamentoTemplate(index) {
+  return `<div class="equipamento-card" id="equipamento-${index}">
+    <div class="equipamento-header">
+      <span class="equipamento-badge">Equipamento ${index}</span>
+      <div class="eq-status-group">
+        <div class="eq-apr"><input type="radio" id="eq-apr-${index}" name="eq-status-${index}" value="APROVADO"><label for="eq-apr-${index}">✓ Aprovado</label></div>
+        <div class="eq-rep"><input type="radio" id="eq-rep-${index}" name="eq-status-${index}" value="REPROVADO"><label for="eq-rep-${index}">✕ Reprovado</label></div>
+        <div class="eq-pen"><input type="radio" id="eq-pen-${index}" name="eq-status-${index}" value="PENDENTE"><label for="eq-pen-${index}">⏳ Pendente</label></div>
+      </div>
+      <button type="button" class="btn btn-danger btn-sm" onclick="removerEquipamento(${index})">✕ Remover</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label>Nº Série</label><input type="text" class="equipamento-serie" placeholder="Número de série"></div>
+      <div class="form-group"><label>Modelo</label><select class="equipamento-modelo"><option value="">Selecione o equipamento</option><option>BABY CONTAINER</option><option>CAÇAMBA</option><option>CAIXA</option><option>CESTA</option><option>CONTAINER 10'</option><option>CONTAINER 20'</option><option>CONTENTOR DE TERCEIRO</option><option>CUTTING BOX</option><option>FRAC TANK</option><option>GAPE 1.000L</option><option>GAPE 1.500L</option><option>HELI FUEL</option><option>MINI CONTAINER</option><option>OCTO 5.000L</option><option>REEFER</option><option>SKID</option><option>TANQUE 1.000L</option><option>TANQUE 1.500L</option><option>TANQUE 5.000L</option></select></div>
+      <div class="form-group"><label>Data da Certificação</label><input type="date" class="equipamento-cert-data"></div>
+      <div class="form-group"><label>Vencimento Certif.</label><input type="date" class="equipamento-cert-venc"><span class="cert-indicator"></span></div>
+      <div class="form-group"><label>Nº Eslinga</label><input type="text" class="equipamento-eslinga" placeholder="Número da eslinga"></div>
+      <div class="form-group"><label>Data Cert. Eslinga</label><input type="date" class="equipamento-eslinga-data"></div>
+      <div class="form-group"><label>Vencimento Eslinga</label><input type="date" class="equipamento-eslinga-venc"><span class="cert-indicator"></span></div>
+      <div class="form-group span-2"><label>Observações</label><textarea class="equipamento-obs" rows="2" placeholder="Observações do equipamento..." style="min-height:56px;resize:vertical;"></textarea></div>
+    </div>
+    <div class="eq-foto-section">
+      <div class="eq-foto-label">📷 Fotos do Equipamento ${index}</div>
+      <div class="eq-foto-upload">
+        <input type="file" accept="image/*" multiple class="eq-foto-input" id="eq-foto-input-${index}" data-eq="${index}">
+        <label for="eq-foto-input-${index}" class="btn btn-ghost btn-sm" style="cursor:pointer;margin-bottom:8px;">📷 Adicionar Foto</label>
+        <span class="eq-foto-count">0 fotos</span>
+        <div class="photo-grid eq-foto-grid" id="eq-foto-grid-${index}"></div>
+      </div>
+    </div>
+  </div>`;
+}
+window.removerEquipamento = id => { const el = document.getElementById('equipamento-'+id); if (el) el.remove(); updateProgress(); };
+
+// ── Fotos por equipamento
+const EQ_MAX_FOTOS = 5;
+
+function eqAddFotos(input, idx) {
+  if (!input.files || !input.files.length) return;
+  const grid = document.getElementById('eq-foto-grid-'+idx);
+  if (!grid) return;
+  const card = document.getElementById('equipamento-'+idx);
+  const countEl = card ? card.querySelector('.eq-foto-count') : null;
+  const currentCount = grid.querySelectorAll('.photo-item').length;
+  if (currentCount >= EQ_MAX_FOTOS) { showNotification('Máximo de '+EQ_MAX_FOTOS+' fotos por equipamento.','error'); input.value=''; return; }
+  const remaining = EQ_MAX_FOTOS - currentCount;
+  Array.from(input.files).slice(0, remaining).forEach(file => {
+    if (!file.type.startsWith('image/')) return;
+    compressImage(file, 800, 800, 0.65).then(base64 => {
+      const item = document.createElement('div'); item.className='photo-item';
+      const img = document.createElement('img'); img.src=base64;
+      const btn = document.createElement('button'); btn.className='remove-photo'; btn.innerHTML='×';
+      btn.onclick = () => { grid.removeChild(item); eqUpdateCount(idx); };
+      item.appendChild(img); item.appendChild(btn); grid.appendChild(item);
+      eqUpdateCount(idx);
+    }).catch(() => showNotification('Erro ao processar foto.','error'));
+  });
+  input.value = '';
+}
+
+function eqUpdateCount(idx) {
+  const grid = document.getElementById('eq-foto-grid-'+idx);
+  const card = document.getElementById('equipamento-'+idx);
+  if (!grid || !card) return;
+  const n = grid.querySelectorAll('.photo-item').length;
+  const countEl = card.querySelector('.eq-foto-count');
+  if (countEl) countEl.textContent = n + ' foto' + (n===1?'':'s');
+}
+
+function eqGetFotos(card) {
+  const grid = card.querySelector('.eq-foto-grid');
+  if (!grid) return [];
+  return Array.from(grid.querySelectorAll('.photo-item img')).map(img => ({ base64: img.src, tipo: 'image/jpeg' }));
+}
+
+function eqRenderFotos(card, fotos) {
+  const idx = card.id.replace('equipamento-','');
+  const grid = card.querySelector('.eq-foto-grid');
+  if (!grid || !fotos || !fotos.length) return;
+  fotos.forEach(f => {
+    const item = document.createElement('div'); item.className='photo-item';
+    const img = document.createElement('img'); img.src=f.base64;
+    const btn = document.createElement('button'); btn.className='remove-photo'; btn.innerHTML='×';
+    btn.onclick = () => { grid.removeChild(item); eqUpdateCount(idx); };
+    item.appendChild(img); item.appendChild(btn); grid.appendChild(item);
+  });
+  eqUpdateCount(idx);
+}
+
+function addEquipamento() {
+  const c = document.getElementById('equipamentos-container');
+  const el = document.createElement('div');
+  el.innerHTML = getEquipamentoTemplate(equipamentoCount);
+  c.appendChild(el);
+  // Bind foto input
+  const idx = equipamentoCount;
+  const input = document.getElementById('eq-foto-input-'+idx);
+  if (input) input.addEventListener('change', function() { eqAddFotos(this, idx); });
+  equipamentoCount++;
+}
+
+// ════════════════════════════════════════════════════════════
+//  TEMA
+// ════════════════════════════════════════════════════════════
+function loadTheme() {
+  const t = localStorage.getItem('tiger_theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  const btn = document.getElementById('theme-toggle');
+  if (btn) btn.textContent = t === 'dark' ? '🌙' : '☀️';
+}
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('tiger_theme', next);
+  document.getElementById('theme-toggle').textContent = next === 'dark' ? '🌙' : '☀️';
+  initSignaturePads();
+}
+
+// ════════════════════════════════════════════════════════════
+//  PROGRESSO
+// ════════════════════════════════════════════════════════════
+function updateProgress() {
+  if (!currentModule) return;
+  const filled = currentModule.campos
+    .filter(c => currentModule.requiredIds.includes(c.id))
+    .filter(c => { const el = document.getElementById(c.id); return el && el.value.trim(); }).length;
+  const total = currentModule.requiredIds.length;
+  const answered = document.querySelectorAll('#inspecao-itens input[type=radio]:checked').length;
+  const insp = (currentModule.inspecao || []).length || document.querySelectorAll('#inspecao-itens .inspection-item').length || 1;
+  const pct = Math.round(((filled + answered) / (total + insp)) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = pct + '%';
+}
+
+// ════════════════════════════════════════════════════════════
+//  RASCUNHO
+// ════════════════════════════════════════════════════════════
+function setupDraftAutoSave() {
+  if (draftTimer) clearInterval(draftTimer);
+  draftTimer = setInterval(() => {
+    const first = currentModule && currentModule.requiredIds[0];
+    if (first && document.getElementById(first)?.value.trim()) saveDraft();
+  }, 30000);
+}
+function saveDraft() {
+  if (!currentModule) return;
+  try {
+    const data = collectFormData();
+    localStorage.setItem(currentModule.draftKey, JSON.stringify({ ...data, fotos: [] }));
+    const now = new Date().toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+    document.getElementById('draft-status').textContent = 'Rascunho salvo ' + now;
+  } catch(e) {}
+}
+function loadDraft() {
+  if (!currentModule) return;
+  try {
+    const raw = localStorage.getItem(currentModule.draftKey);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    const first = currentModule.requiredIds[0];
+    if (!d[first] && !d.cliente) return;
+    if (confirm('Existe um rascunho salvo. Deseja restaurá-lo?')) { fillFormWithData(d); showNotification('Rascunho restaurado!'); }
+  } catch(e) {}
+}
+function clearDraft() {
+  if (!currentModule) return;
+  localStorage.removeItem(currentModule.draftKey);
+  document.getElementById('draft-status').textContent = 'Rascunho';
+}
+
+// ════════════════════════════════════════════════════════════
+//  CERTIFICAÇÃO (externa)
+// ════════════════════════════════════════════════════════════
+function diasAteVencimento(dateStr) {
+  if (!dateStr) return null;
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  return Math.ceil((new Date(dateStr+'T00:00:00') - hoje) / 86400000);
+}
+function certInfo(dias) {
+  if (dias === null) return null;
+  if (dias > 120) return { txt:'✓ '+dias+' dias restantes', color:'var(--success)' };
+  if (dias > 90)  return { txt:'⚠ '+dias+' dias restantes', color:'var(--yellow-dark)' };
+  if (dias > 0)   return { txt:'✕ '+dias+' dias - crítico!', color:'var(--danger)' };
+  return { txt:'✕ VENCIDA há '+Math.abs(dias)+' dia(s)!', color:'var(--danger)' };
+}
+function addOneYear(dateStr) {
+  if (!dateStr) return '';
+  const p = dateStr.split('-');
+  if (p.length !== 3) return '';
+  return (parseInt(p[0])+1)+'-'+p[1]+'-'+p[2];
+}
+function updateCertIndicator(vencInput) {
+  const span = vencInput.nextElementSibling;
+  if (!span || !span.classList.contains('cert-indicator')) return;
+  const info = certInfo(diasAteVencimento(vencInput.value));
+  if (!info) { span.style.display='none'; return; }
+  span.style.display='block'; span.textContent=info.txt; span.style.color=info.color;
+}
+
+// ════════════════════════════════════════════════════════════
+//  SIGNATURE PADS
+// ════════════════════════════════════════════════════════════
+function initSignaturePads() {
+  ['signature-canvas','signature-canvas-cliente'].forEach((id, i) => {
+    const canvas = document.getElementById(id);
+    if (!canvas) return;
+    const ratio = Math.max(window.devicePixelRatio || 1, 1);
+    canvas.width  = canvas.offsetWidth  * ratio;
+    canvas.height = canvas.offsetHeight * ratio;
+    canvas.getContext('2d').scale(ratio, ratio);
+    const pad = new SignaturePad(canvas, { backgroundColor:'rgb(255,255,255)' });
+    if (i === 0) signaturePad = pad; else signaturePadCliente = pad;
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+//  EVENTOS
+// ════════════════════════════════════════════════════════════
+function setupEventListeners() {
+  // Nav tabs
+  document.querySelectorAll('.nav-tab').forEach(t =>
+    t.addEventListener('click', e => { e.preventDefault(); switchTab(t.getAttribute('data-tab')); }));
+
+  document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+  document.getElementById('btn-trocar').addEventListener('click', backToSelector);
+
+  // Assinaturas
+  document.getElementById('clear-signature').addEventListener('click', () => signaturePad?.clear());
+  document.getElementById('clear-signature-cliente').addEventListener('click', () => signaturePadCliente?.clear());
+  document.getElementById('expand-signature').addEventListener('click', () => openSigModal('inspetor'));
+  document.getElementById('expand-signature-cliente').addEventListener('click', () => openSigModal('cliente'));
+
+  // Fotos
+  // Fotos agora são por equipamento — listener vinculado em addEquipamento()
+
+  // Equipamentos
+  const addEqBtn = document.getElementById('add-equipamento');
+  if (addEqBtn) addEqBtn.addEventListener('click', addEquipamento);
+
+  // Progresso — campos obrigatórios
+  if (currentModule) {
+    currentModule.requiredIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', updateProgress);
+    });
+  }
+
+  // Inspeção — usa função reutilizável (necessária para troca dinâmica no transbordo)
+  rebindInspecaoEvents();
+
+  document.getElementById('salvar').addEventListener('click', openResumoModal);
+  document.getElementById('limpar').addEventListener('click', () => {
+    if (confirm('Limpar todos os dados do formulário?')) { clearForm(); clearDraft(); }
+  });
+  document.getElementById('modal-cancelar').addEventListener('click', closeResumoModal);
+  document.getElementById('modal-confirmar').addEventListener('click', confirmSave);
+  document.getElementById('modal-resumo').addEventListener('click', e => { if (e.target === document.getElementById('modal-resumo')) closeResumoModal(); });
+  document.getElementById('apply-filters').addEventListener('click', updateHistoryList);
+  document.getElementById('filter-search').addEventListener('input', updateHistoryList);
+  document.getElementById('clear-all-data').addEventListener('click', clearAllData);
+  document.getElementById('export-json').addEventListener('click', exportBackup);
+  document.getElementById('import-json-btn').addEventListener('click', () => document.getElementById('import-json-input').click());
+  document.getElementById('import-json-input').addEventListener('change', importBackup);
+
+  // Equipamentos — auto cert
+  document.getElementById('equipamentos-container').addEventListener('change', function(e) {
+    const tgt = e.target;
+    if (tgt.classList.contains('equipamento-cert-data')) {
+      const vi = tgt.closest('.equipamento-card').querySelector('.equipamento-cert-venc');
+      if (vi && !vi.value && tgt.value) { vi.value = addOneYear(tgt.value); updateCertIndicator(vi); }
+    }
+    if (tgt.classList.contains('equipamento-eslinga-data')) {
+      const vi = tgt.closest('.equipamento-card').querySelector('.equipamento-eslinga-venc');
+      if (vi && !vi.value && tgt.value) { vi.value = addOneYear(tgt.value); updateCertIndicator(vi); }
+    }
+    if (tgt.classList.contains('equipamento-cert-venc') || tgt.classList.contains('equipamento-eslinga-venc')) {
+      updateCertIndicator(tgt);
+    }
+  });
+
+  // Máscara horas (externa + interna)
+  ['horaChegada','horaSaida','horaInicial','horaFinal'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('input', function() {
+      let v = this.value.replace(/\D/g,'').slice(0,4);
+      if (v.length >= 3) v = v.slice(0,2)+':'+v.slice(2);
+      this.value = v;
+    });
+    el.addEventListener('blur', function() { validateHora(this.id, this.value); });
+  });
+
+  // Placa uppercase (externa)
+  const placaEl = document.getElementById('placa');
+  if (placaEl) {
+    placaEl.addEventListener('input', function() { this.value = this.value.toUpperCase(); });
+    if (currentModule && currentModule.color === 'externa') {
+      placaEl.addEventListener('blur', function() { validatePlaca(this.value); });
+    }
+  }
+
+  setupSigModal();
+
+  // Enter nas inputs de configuração
+  [
+    ['cfg-cliente-input',    'clientes',     'cfg-clientes-list'],
+    ['cfg-responsavel-input','responsaveis', 'cfg-responsaveis-list'],
+    ['cfg-produto-input',    'produtos',     'cfg-produtos-list'],
+  ].forEach(([inputId, tipo, listId]) => {
+    const el = document.getElementById(inputId);
+    if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') cfgAdd(tipo, inputId, listId); });
+  });
+  updateProgress();
+}
+
+// ════════════════════════════════════════════════════════════
+//  VALIDAÇÃO VISUAL
+// ════════════════════════════════════════════════════════════
+function setFieldState(inputId, hintId, ok, msg) {
+  const el = document.getElementById(inputId);
+  const hint = hintId ? document.getElementById(hintId) : null;
+  if (!el) return;
+  el.classList.toggle('field-error', !ok);
+  el.classList.toggle('field-ok', ok && msg !== '');
+  if (hint) { hint.textContent = msg; hint.className = 'field-hint' + (msg ? ' visible ' + (ok ? 'ok' : 'error') : ''); }
+}
+function validateHora(id, val) {
+  if (!val) { setFieldState(id, 'hint-'+id, true, ''); return true; }
+  const ok = /^([01]\d|2[0-3]):([0-5]\d)$/.test(val);
+  setFieldState(id, 'hint-'+id, ok, ok ? '✓ Hora válida' : '✕ Use HH:MM (ex: 08:30)');
+  return ok;
+}
+function validatePlaca(val) {
+  if (!val) { setFieldState('placa', 'hint-placa', true, ''); return true; }
+  const ok = /^[A-Z]{3}-?\d{4}$/.test(val) || /^[A-Z]{3}\d[A-Z]\d{2}$/.test(val);
+  setFieldState('placa', 'hint-placa', ok, ok ? '✓ Placa válida' : '✕ Use ABC-1234 ou ABC1D23');
+  return ok;
+}
+
+// ════════════════════════════════════════════════════════════
+//  FOTOS
+// ════════════════════════════════════════════════════════════
+function compressImage(file, maxW, maxH, q) {
+  return new Promise((res, rej) => {
+    const reader = new FileReader();
+    reader.onerror = rej;
+    reader.onload = e => {
+      const img = new Image();
+      img.onerror = rej;
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > maxW) { h = Math.round(h*maxW/w); w = maxW; }
+        if (h > maxH) { w = Math.round(w*maxH/h); h = maxH; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        res(canvas.toDataURL('image/jpeg', q));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function addPhotos() {
+  const input = document.getElementById('foto');
+  const container = document.getElementById('fotos');
+  if (!input.files || !input.files.length) return;
+  const MAX = 10;
+  if (fotosTemp.length >= MAX) { showNotification('Máximo de '+MAX+' fotos.', 'error'); input.value=''; return; }
+  Array.from(input.files).slice(0, MAX - fotosTemp.length).forEach(file => {
+    if (!file.type.startsWith('image/')) return;
+    compressImage(file, 800, 800, 0.65).then(base64 => {
+      fotosTemp.push({ nome: file.name, base64, tipo: 'image/jpeg' });
+      const item = document.createElement('div'); item.className = 'photo-item';
+      const img = document.createElement('img'); img.src = base64;
+      const btn = document.createElement('button'); btn.className = 'remove-photo'; btn.innerHTML = '×';
+      btn.onclick = () => { container.removeChild(item); fotosTemp.splice(fotosTemp.findIndex(f=>f.base64===base64),1); updatePhotoCount(); };
+      item.appendChild(img); item.appendChild(btn); container.appendChild(item);
+      updatePhotoCount();
+    }).catch(() => showNotification('Erro ao processar '+file.name, 'error'));
+  });
+  input.value = '';
+}
+function updatePhotoCount() {
+  const el = document.getElementById('photo-count');
+  if (el) el.innerHTML = '<span>📁</span> ' + fotosTemp.length + ' foto(s)';
+}
+
+// ════════════════════════════════════════════════════════════
+//  COLETA DE DADOS
+// ════════════════════════════════════════════════════════════
+function collectFormData(id) {
+  const mod = currentModule;
+  const dadosBase = {};
+  mod.campos.forEach(c => {
+    const el = document.getElementById(c.id);
+    dadosBase[c.id] = el ? el.value : '';
+  });
+  // Garante campo 'cliente' e 'responsavel'
+  if (!dadosBase.cliente) dadosBase.cliente = dadosBase.responsavel || dadosBase.inspetor1 || '';
+  if (!dadosBase.responsavel) dadosBase.responsavel = dadosBase.inspetor1 || dadosBase.cliente || '';
+
+  const servicos = [...document.querySelectorAll('input[name=servicos]:checked')].map(c => c.value);
+
+  const respostasInspecao = {};
+  document.querySelectorAll('#inspecao-itens .inspection-item').forEach((item, i) => {
+    respostasInspecao['pergunta_'+(i+1)] = {
+      pergunta: item.querySelector('.inspection-question').textContent.trim(),
+      resposta: item.querySelector('input[type=radio]:checked')?.value || 'NÃO RESPONDIDO',
+      obsNao: item.querySelector('.insp-item-obs')?.value || '',
+    };
+  });
+
+  // ── Inspeção do Equipamento (transbordo)
+  let inspecaoEquipamento = null;
+  if (mod.hasEquipamentoInspecao && mod.camposEquipamento) {
+    inspecaoEquipamento = {};
+    mod.camposEquipamento.forEach(c => {
+      const el = document.getElementById('eq-'+c.id);
+      inspecaoEquipamento[c.id] = el ? el.value : '';
+    });
+    // Captura o tipo de inspeção atual (título dinâmico)
+    const inspecaoCard = document.getElementById('inspecao-itens').closest('.section-card');
+    inspecaoEquipamento._tipoInspecao = inspecaoCard?.querySelector('.section-title')?.textContent || '';
+  }
+
+  let equipamentos = [];
+  if (mod.hasEquipamentos) {
+    document.querySelectorAll('.equipamento-card').forEach(card => {
+      equipamentos.push({
+        serie:       card.querySelector('.equipamento-serie')?.value || '',
+        modelo:      card.querySelector('.equipamento-modelo')?.value || '',
+        certData:    card.querySelector('.equipamento-cert-data')?.value || '',
+        certVenc:    card.querySelector('.equipamento-cert-venc')?.value || '',
+        eslinga:     card.querySelector('.equipamento-eslinga')?.value || '',
+        eslingaData: card.querySelector('.equipamento-eslinga-data')?.value || '',
+        eslingaVenc: card.querySelector('.equipamento-eslinga-venc')?.value || '',
+        obs:         card.querySelector('.equipamento-obs')?.value || '',
+        status:      card.querySelector('input[name^="eq-status"]:checked')?.value || '',
+        fotos:       eqGetFotos(card),
+      });
+    });
+  }
+
+  let status = 'PENDENTE';
+  if (mod.statusPor === 'equipamentos' && equipamentos.length > 0) {
+    const statuses = equipamentos.map(e => e.status);
+    if (statuses.includes('REPROVADO')) status = 'REPROVADO';
+    else if (statuses.every(s => s === 'APROVADO')) status = 'APROVADO';
+  } else {
+    const nao   = Object.values(respostasInspecao).filter(r => r.resposta === 'NÃO').length;
+    const troca = Object.values(respostasInspecao).filter(r => r.resposta === 'TROCA').length;
+    const nr    = Object.values(respostasInspecao).filter(r => r.resposta === 'NÃO RESPONDIDO').length;
+    if (nao === 0 && troca === 0 && nr === 0) status = 'APROVADO';
+    else if (nao > 0 || troca > 0) status = 'REPROVADO';
+  }
+
+  return {
+    id: id || ('CHK-'+Date.now()),
+    modulo: mod.color,
+    moduloName: mod.name,
+    ...dadosBase,
+    servicos, respostasInspecao, inspecaoEquipamento, equipamentos, status,
+    observacoes: document.getElementById('observacoes').value,
+    assinatura: signaturePad?.isEmpty() ? '' : signaturePad?.toDataURL(),
+    assinaturaCliente: signaturePadCliente?.isEmpty() ? '' : signaturePadCliente?.toDataURL(),
+    timestamp: new Date().toISOString(),
+  };
+}
+
+function fillFormWithData(d) {
+  if (!currentModule) return;
+  currentModule.campos.forEach(c => {
+    const el = document.getElementById(c.id);
+    if (el) el.value = d[c.id] || '';
+  });
+  if (!document.getElementById('data')?.value) {
+    const dataEl = document.getElementById('data');
+    if (dataEl) dataEl.value = new Date().toISOString().split('T')[0];
+  }
+  document.getElementById('observacoes').value = d.observacoes || '';
+
+  if (currentModule.hasEquipamentos) {
+    document.getElementById('equipamentos-container').innerHTML = '';
+    equipamentoCount = 1;
+    (d.equipamentos || [{}]).forEach((eq, idx) => {
+      addEquipamento();
+      const card = document.querySelector('#equipamento-'+(idx+1));
+      if (!card) return;
+      card.querySelector('.equipamento-serie').value = eq.serie || '';
+      card.querySelector('.equipamento-modelo').value = eq.modelo || '';
+      card.querySelector('.equipamento-cert-data').value = eq.certData || '';
+      card.querySelector('.equipamento-cert-venc').value = eq.certVenc || '';
+      card.querySelector('.equipamento-eslinga').value = eq.eslinga || '';
+      card.querySelector('.equipamento-eslinga-data').value = eq.eslingaData || '';
+      card.querySelector('.equipamento-eslinga-venc').value = eq.eslingaVenc || '';
+      card.querySelector('.equipamento-obs').value = eq.obs || '';
+      if (eq.status) { const r = card.querySelector('input[value="'+eq.status+'"]'); if (r) r.checked = true; }
+      // Restaurar fotos do equipamento
+      if (eq.fotos && eq.fotos.length) eqRenderFotos(card, eq.fotos);
+    });
+  }
+
+  document.querySelectorAll('input[name=servicos]').forEach(cb => { cb.checked = (d.servicos||[]).includes(cb.value); });
+
+  // Restaurar campos de inspeção do equipamento (transbordo)
+  if (currentModule.hasEquipamentoInspecao && currentModule.camposEquipamento && d.inspecaoEquipamento) {
+    currentModule.camposEquipamento.forEach(c => {
+      const el = document.getElementById('eq-'+c.id);
+      if (el) el.value = d.inspecaoEquipamento[c.id] || '';
+    });
+  }
+
+  Object.values(d.respostasInspecao || {}).forEach((item, i) => {
+    const el = document.querySelectorAll('#inspecao-itens .inspection-item')[i];
+    if (!el) return;
+    el.querySelectorAll('input[type=radio]').forEach(r => { if (r.value === item.resposta) r.checked = true; });
+    if (item.resposta === 'NÃO' || item.resposta === 'TROCA') {
+      const ow = el.querySelector('.insp-obs-wrap');
+      if (ow) { ow.classList.add('visible'); el.classList.add('has-nao'); const ta = ow.querySelector('textarea'); if (ta && item.obsNao) ta.value = item.obsNao; }
+    }
+  });
+  updateProgress();
+}
+
+// ════════════════════════════════════════════════════════════
+//  VALIDAÇÃO DO FORMULÁRIO
+// ════════════════════════════════════════════════════════════
+function validateForm() {
+  for (const id of currentModule.requiredIds) {
+    const el = document.getElementById(id);
+    if (!el || !el.value.trim()) {
+      const campo = currentModule.campos.find(c => c.id === id);
+      showNotification('Preencha: ' + (campo ? campo.label.replace(' *','') : id), 'error');
+      el && el.scrollIntoView({ behavior:'smooth', block:'center' });
+      return false;
+    }
+  }
+  // Assinatura do cliente obrigatória apenas na Logística Externa
+  if (currentModule.color === 'externa') {
+    if (!signaturePadCliente || signaturePadCliente.isEmpty()) {
+      showNotification('A assinatura do cliente/receptor é obrigatória!', 'error');
+      const wrap = document.getElementById('signature-canvas-cliente').closest('.signature-wrap');
+      wrap.style.borderColor='var(--danger)'; wrap.style.boxShadow='0 0 0 3px rgba(239,68,68,.2)';
+      setTimeout(() => { wrap.style.borderColor=''; wrap.style.boxShadow=''; }, 3000);
+      document.getElementById('signature-canvas-cliente').scrollIntoView({ behavior:'smooth', block:'center' });
+      return false;
+    }
+  }
+  return true;
+}
+
+// ════════════════════════════════════════════════════════════
+//  MODAL RESUMO
+// ════════════════════════════════════════════════════════════
+function openResumoModal() {
+  if (!validateForm()) return;
+  const d = collectFormData(editingId || undefined);
+  const nao   = Object.values(d.respostasInspecao).filter(r => r.resposta === 'NÃO').length;
+  const troca = Object.values(d.respostasInspecao).filter(r => r.resposta === 'TROCA').length;
+  const nr    = Object.values(d.respostasInspecao).filter(r => r.resposta === 'NÃO RESPONDIDO').length;
+  const totalFotosModal = (d.equipamentos||[]).reduce((a,eq)=>a+(eq.fotos?.length||0),0);
+  const campos = currentModule.campos.map(c => `<div class="modal-row"><span>${c.label.replace(' *','')}</span><span>${d[c.id]||'—'}</span></div>`).join('');
+  let html = `<div class="modal-section"><div class="modal-section-title">📋 Dados — ${currentModule.name}</div>${campos}</div>
+  ${currentModule.hasServicos && d.servicos.length ? `<div class="modal-section"><div class="modal-section-title">⚙️ Serviços (${d.servicos.length})</div>${d.servicos.map(s=>`<div class="modal-row"><span>${s}</span><span>✓</span></div>`).join('')}</div>` : ''}
+  <div class="modal-section"><div class="modal-section-title">🔍 Inspeção ${nao>0?`— <span style="color:var(--danger)">${nao} NÃO</span>`:'— <span style="color:var(--success)">OK</span>'} ${troca>0?`· <span style="color:var(--warning)">${troca} TROCA</span>`:''} ${nr>0?`· <span style="color:var(--warning)">${nr} s/ resposta</span>`:''}</div>${Object.values(d.respostasInspecao).map(item=>{const cls=item.resposta==='SIM'?'r-sim':item.resposta==='NÃO'?'r-nao':item.resposta==='N/A'?'r-na':item.resposta==='TROCA'?'r-troca':'r-nr';return`<div class="modal-insp-item"><span class="modal-insp-q">${item.pergunta}</span><span class="modal-insp-r ${cls}">${item.resposta}</span></div>`;}).join('')}</div>
+  <div class="modal-section"><div class="modal-section-title">📊 Status · 📷 ${totalFotosModal} foto(s)</div><div class="modal-row"><span>Status</span><span>${d.status}</span></div><div class="modal-row"><span>Assinatura</span><span>${d.assinatura?'✓ Assinado':'—'}</span></div>${currentModule.color==='externa'?`<div class="modal-row"><span>Assinatura Cliente</span><span>${d.assinaturaCliente?'✓ Assinado':'—'}</span></div>`:''}</div>`;
+  document.getElementById('modal-content').innerHTML = html;
+  document.getElementById('modal-resumo').classList.add('open');
+}
+function closeResumoModal() { document.getElementById('modal-resumo').classList.remove('open'); }
+
+function confirmSave() {
+  closeResumoModal();
+  const data = collectFormData(editingId || undefined);
+  const btn = document.getElementById('salvar');
+  btn.disabled = true; btn.innerHTML = '⏳ Salvando...';
+  dbSave(currentModule.dbStore, data).then(() => {
+    if (editingId) {
+      checklists = checklists.map(c => c.id===editingId ? data : c);
+      editingId = null;
+      showNotification('Registro atualizado!');
+      clearDraft(); updateHistoryList(); updateDashboard(); clearForm();
+    } else {
+      checklists.push(data);
+      showNotification('Checklist salvo! Gerando PDF...');
+      clearDraft(); updateHistoryList(); updateDashboard();
+      // Gera o PDF antes de limpar o formulário
+      try { generatePDF(data.id); } catch(e) { showNotification('Salvo! Erro ao gerar PDF: '+e.message,'error'); console.error(e); }
+      clearForm();
+    }
+  }).catch(e => showNotification('Erro ao salvar: '+e.message, 'error'))
+    .finally(() => { btn.disabled=false; btn.innerHTML='💾 Salvar Checklist'; });
+}
+
+// ════════════════════════════════════════════════════════════
+//  LIMPAR FORMULÁRIO
+// ════════════════════════════════════════════════════════════
+function clearForm() {
+  if (!currentModule) return;
+  currentModule.campos.forEach(c => { const el = document.getElementById(c.id); if (el) { if (c.type==='select') el.selectedIndex=0; else el.value=''; } });
+  const dataEl = document.getElementById('data');
+  if (dataEl) dataEl.value = new Date().toISOString().split('T')[0];
+  document.getElementById('observacoes').value = '';
+  // Limpar campos de inspeção do equipamento (transbordo)
+  if (currentModule.hasEquipamentoInspecao && currentModule.camposEquipamento) {
+    currentModule.camposEquipamento.forEach(c => { const el = document.getElementById('eq-'+c.id); if (el) el.value=''; });
+    // Reset inspeção para padrão (Contentores)
+    const inspecaoCard = document.getElementById('inspecao-itens').closest('.section-card');
+    const inspecaoHeader = inspecaoCard ? inspecaoCard.querySelector('.section-title') : null;
+    if (inspecaoHeader) inspecaoHeader.textContent = 'Inspeção da Carga — Contentores';
+    document.getElementById('inspecao-itens').innerHTML = buildInspecaoHTML(currentModule.inspecaoContentores);
+    rebindInspecaoEvents();
+  }
+  if (currentModule.hasEquipamentos) { document.getElementById('equipamentos-container').innerHTML=''; equipamentoCount=1; addEquipamento(); }
+  document.querySelectorAll('input[name=servicos]').forEach(cb => cb.checked=false);
+  document.querySelectorAll('#inspecao-itens input[type=radio]').forEach(r => r.checked=false);
+  document.querySelectorAll('#inspecao-itens .insp-obs-wrap').forEach(w => { w.classList.remove('visible'); const ta=w.querySelector('textarea'); if (ta) ta.value=''; });
+  document.querySelectorAll('#inspecao-itens .inspection-item').forEach(i => i.classList.remove('has-nao'));
+  if (signaturePad) signaturePad.clear();
+  if (signaturePadCliente) signaturePadCliente.clear();
+  editingId=null;
+  document.getElementById('form-title').textContent = 'Novo Registro — '+currentModule.name;
+  if (currentModule.color==='transbordo') cfgUpdateSelects();
+  updateProgress();
+}
+
+// ════════════════════════════════════════════════════════════
+//  EDITAR / DUPLICAR / EXCLUIR
+// ════════════════════════════════════════════════════════════
+window.editChecklist = function(id) {
+  const d = checklists.find(c=>c.id===id); if (!d) return;
+  switchTab('checklist'); editingId=id;
+  document.getElementById('form-title').textContent = '✏️ Editando — '+currentModule.name;
+  fillFormWithData(d);
+  window.scrollTo({top:0,behavior:'smooth'});
+  showNotification('Editando. Faça as alterações e salve.');
+};
+
+window.duplicateChecklist = function(id) {
+  const d = checklists.find(c=>c.id===id); if (!d) return;
+  switchTab('checklist'); editingId=null;
+  document.getElementById('form-title').textContent = '📋 Duplicado — '+currentModule.name;
+  // Duplicar sem fotos e sem assinaturas
+  const semFotos = { ...d, assinatura:'', assinaturaCliente:'',
+    equipamentos: (d.equipamentos||[]).map(eq => ({...eq, fotos:[]})) };
+  fillFormWithData(semFotos);
+  if (signaturePad) signaturePad.clear();
+  if (signaturePadCliente) signaturePadCliente.clear();
+  window.scrollTo({top:0,behavior:'smooth'});
+  showNotification('Formulário preenchido. Revise e salve.');
+};
+
+window.deleteChecklist = function(id) {
+  if (!confirm('Excluir este registro?')) return;
+  dbDelete(currentModule.dbStore, id).then(()=>{ checklists=checklists.filter(c=>c.id!==id); updateHistoryList(); updateDashboard(); showNotification('Registro excluído!'); })
+    .catch(()=>showNotification('Erro ao excluir.','error'));
+};
+
+// ════════════════════════════════════════════════════════════
+//  HISTÓRICO
+// ════════════════════════════════════════════════════════════
+function updateHistoryList() {
+  const list = document.getElementById('history-list');
+  list.innerHTML='';
+  const totalF = checklists.reduce((a,c)=>a+((c.equipamentos||[]).reduce((b,eq)=>b+(eq.fotos?.length||0),0)),0);
+  document.getElementById('storage-indicator').innerHTML = `<div class="storage-box"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;"><span style="font-size:12px;color:var(--text-muted);">💾 ${currentModule.name} · IndexedDB</span><span style="font-size:12px;font-weight:700;color:var(--success);">✓ OK</span></div><div style="display:flex;gap:14px;margin-top:7px;flex-wrap:wrap;"><span style="font-size:12px;color:var(--text-muted);">📋 <b style="color:var(--text)">${checklists.length}</b> registros</span><span style="font-size:12px;color:var(--text-muted);">📷 <b style="color:var(--text)">${totalF}</b> fotos</span></div></div>`;
+  if (!checklists.length) { list.innerHTML=`<div class="empty-state"><div class="empty-state-icon">📂</div><p>Nenhum registro em ${currentModule.name}.</p></div>`; return; }
+  const search=(document.getElementById('filter-search').value||'').toLowerCase();
+  const fStatus=document.getElementById('filter-status').value;
+  const fDate=document.getElementById('filter-date').value;
+  const filtered=checklists.filter(item=>{
+    if (fStatus!=='all' && item.status!==fStatus) return false;
+    if (fDate && item.data!==fDate) return false;
+    const name=(item.cliente||item.responsavel||'').toLowerCase();
+    const resp=(item.responsavel||item.inspetor1||'').toLowerCase();
+    if (search && !name.includes(search) && !resp.includes(search)) return false;
+    return true;
+  }).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+  if (!filtered.length) { list.innerHTML=`<div class="empty-state"><div class="empty-state-icon">🔍</div><p>Nenhum resultado.</p></div>`; return; }
+  filtered.forEach(item=>{
+    const bc=item.status==='APROVADO'?'badge-approved':item.status==='REPROVADO'?'badge-rejected':'badge-pending';
+    const card=document.createElement('div'); card.className='history-card';
+    card.innerHTML=`<div class="history-info">
+      <div class="history-client">${item.cliente||item.responsavel||'—'}</div>
+      <div class="history-meta"><span>📅 ${fmtDate(item.data)}</span><span class="meta-dot">·</span><span>👤 ${item.responsavel||item.inspetor1||'—'}</span><span class="meta-dot">·</span><span>📷 ${(item.equipamentos||[]).reduce((a,eq)=>a+(eq.fotos?.length||0),0)}</span></div>
+      <div style="margin-top:6px;"><span class="status-badge ${bc}">${item.status}</span></div>
+    </div>
+    <div class="history-actions">
+      <button class="btn btn-primary btn-sm" onclick="generatePDF('${item.id}')" title="PDF">📄</button>
+      <button class="btn btn-info btn-sm" onclick="editChecklist('${item.id}')" title="Editar">✏️</button>
+      <button class="btn btn-ghost btn-sm" onclick="duplicateChecklist('${item.id}')" title="Duplicar">📋</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteChecklist('${item.id}')">🗑</button>
+    </div>`;
+    list.appendChild(card);
+  });
+}
+
+function clearAllData() {
+  if (!confirm('Excluir TODOS os registros de '+currentModule.name+'? Ação irreversível!')) return;
+  dbClear(currentModule.dbStore).then(()=>{ checklists=[]; updateHistoryList(); updateDashboard(); showNotification('Todos os dados excluídos!'); })
+    .catch(()=>showNotification('Erro ao limpar.','error'));
+}
+
+// ════════════════════════════════════════════════════════════
+//  EXPORT / IMPORT
+// ════════════════════════════════════════════════════════════
+function exportBackup() {
+  if (!checklists.length) { showNotification('Nenhum dado para exportar.','error'); return; }
+  const blob=new Blob([JSON.stringify({versao:'2.0',modulo:currentModule.color,exportadoEm:new Date().toISOString(),total:checklists.length,dados:checklists},null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='backup_tiger_'+currentModule.color+'_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click(); URL.revokeObjectURL(url);
+  showNotification('Backup exportado — '+checklists.length+' registro(s)!');
+}
+function importBackup(e) {
+  const file=e.target.files[0]; if (!file) return;
+  const reader=new FileReader();
+  reader.onload=async ev=>{
+    try {
+      const parsed=JSON.parse(ev.target.result);
+      const items=parsed.dados||parsed;
+      if (!Array.isArray(items)||!items.length) throw new Error('Formato inválido');
+      const novos=items.filter(item=>item.id&&!checklists.find(c=>c.id===item.id));
+      const dup=items.length-novos.length;
+      if (!novos.length) { showNotification('Todos os registros já existem.','error'); return; }
+      if (!confirm('Importar '+novos.length+' registro(s)'+(dup?' ('+dup+' ignorados)':'')+' para '+currentModule.name+'?')) return;
+      for (const item of novos) await dbSave(currentModule.dbStore, item);
+      checklists.push(...novos); updateHistoryList(); updateDashboard();
+      showNotification(novos.length+' registro(s) importado(s)!');
+    } catch(err) { showNotification('Erro: arquivo inválido.','error'); }
+    e.target.value='';
+  };
+  reader.readAsText(file);
+}
+
+// ════════════════════════════════════════════════════════════
+//  ASSINATURA FULLSCREEN
+// ════════════════════════════════════════════════════════════
+let sigModalPad=null, sigModalTarget=null;
+function setupSigModal() {
+  document.getElementById('sig-modal-clear').addEventListener('click',()=>sigModalPad?.clear());
+  document.getElementById('sig-modal-ok').addEventListener('click',confirmSigModal);
+  document.getElementById('sig-modal-cancel').addEventListener('click',closeSigModal);
+  document.getElementById('sig-modal').addEventListener('click',e=>{if(e.target===document.getElementById('sig-modal'))closeSigModal();});
+}
+function openSigModal(target) {
+  sigModalTarget=target;
+  document.getElementById('sig-modal-title').textContent=target==='inspetor'?'Assinatura do Responsável':'Assinatura do Cliente / Receptor';
+  document.getElementById('sig-modal').classList.add('open');
+  const canvas=document.getElementById('sig-modal-canvas');
+  const ratio=Math.max(window.devicePixelRatio||1,1);
+  canvas.width=canvas.offsetWidth*ratio; canvas.height=canvas.offsetHeight*ratio;
+  canvas.getContext('2d').scale(ratio,ratio);
+  sigModalPad=new SignaturePad(canvas,{backgroundColor:'rgb(255,255,255)'});
+  const srcPad=target==='inspetor'?signaturePad:signaturePadCliente;
+  if (srcPad&&!srcPad.isEmpty()) {
+    const img=new Image();
+    img.onload=()=>canvas.getContext('2d').drawImage(img,0,0,canvas.offsetWidth,canvas.offsetHeight);
+    img.src=srcPad.toDataURL();
+  }
+}
+function confirmSigModal() {
+  if (sigModalPad&&!sigModalPad.isEmpty()) {
+    const dataUrl=sigModalPad.toDataURL();
+    const tgtCanvas=document.getElementById(sigModalTarget==='inspetor'?'signature-canvas':'signature-canvas-cliente');
+    if (tgtCanvas) {
+      const ratio=Math.max(window.devicePixelRatio||1,1);
+      const newPad=new SignaturePad(tgtCanvas,{backgroundColor:'rgb(255,255,255)'});
+      const img=new Image();
+      img.onload=()=>{ const ctx=tgtCanvas.getContext('2d'); ctx.clearRect(0,0,tgtCanvas.width,tgtCanvas.height); ctx.drawImage(img,0,0,tgtCanvas.offsetWidth*ratio,tgtCanvas.offsetHeight*ratio); newPad.fromDataURL(dataUrl); if(sigModalTarget==='inspetor')signaturePad=newPad; else signaturePadCliente=newPad; };
+      img.src=dataUrl;
+    }
+  }
+  closeSigModal();
+}
+function closeSigModal() { document.getElementById('sig-modal').classList.remove('open'); sigModalPad=null; }
+
+// ════════════════════════════════════════════════════════════
+//  DASHBOARD
+// ════════════════════════════════════════════════════════════
+function updateDashboard() {
+  const el=document.getElementById('dashboard-content');
+  if (!currentModule) return;
+  document.getElementById('dashboard-subtitle').textContent='Visão geral — '+currentModule.name;
+  if (!checklists.length) { el.innerHTML=`<div class="empty-state"><div class="empty-state-icon">📊</div><p>Nenhum registro em ${currentModule.name}.</p></div>`; return; }
+  const total=checklists.length;
+  const apr=checklists.filter(c=>c.status==='APROVADO').length;
+  const rep=checklists.filter(c=>c.status==='REPROVADO').length;
+  const pen=checklists.filter(c=>c.status==='PENDENTE').length;
+  const totalFotos=checklists.reduce((a,c)=>a+((c.equipamentos||[]).reduce((b,eq)=>b+(eq.fotos?.length||0),0)),0);
+  const pct=v=>Math.round((v/total)*100);
+  const porMes={};
+  checklists.forEach(c=>{ if(!c.data)return; const m=c.data.slice(0,7); porMes[m]=(porMes[m]||0)+1; });
+  const meses=Object.entries(porMes).sort((a,b)=>a[0].localeCompare(b[0])).slice(-6);
+  const maxMes=Math.max(...meses.map(m=>m[1]),1);
+  const clienteCount={};
+  checklists.forEach(c=>{ const k=c.cliente||c.responsavel||''; clienteCount[k]=(clienteCount[k]||0)+1; });
+  const topCli=Object.entries(clienteCount).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const maxCli=topCli[0]?.[1]||1;
+  const svcCount={};
+  checklists.forEach(c=>(c.servicos||[]).forEach(s=>{ svcCount[s]=(svcCount[s]||0)+1; }));
+  const topSvc=Object.entries(svcCount).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const maxSvc=topSvc[0]?.[1]||1;
+  const mc=currentModule.cssColor;
+  el.innerHTML=`<div class="stats-grid">
+    <div class="stat-card"><div class="stat-number">${total}</div><div class="stat-label">Total</div></div>
+    <div class="stat-card"><div class="stat-number" style="color:var(--success)">${apr}</div><div class="stat-label">Aprovados</div></div>
+    <div class="stat-card"><div class="stat-number" style="color:var(--danger)">${rep}</div><div class="stat-label">Reprovados</div></div>
+    <div class="stat-card"><div class="stat-number" style="color:var(--warning)">${pen}</div><div class="stat-label">Pendentes</div></div>
+    <div class="stat-card"><div class="stat-number" style="color:var(--info)">${totalFotos}</div><div class="stat-label">Fotos</div></div>
+    <div class="stat-card"><div class="stat-number">${pct(apr)}%</div><div class="stat-label">Taxa Aprov.</div></div>
+  </div>
+  <div class="section-card"><p class="chart-title">📊 Status</p><div class="chart-bar-wrap">
+    <div class="chart-bar-row"><span class="chart-bar-label">Aprovados</span><div class="chart-bar-track"><div class="chart-bar-fill" style="width:${pct(apr)}%;background:var(--success);">${apr}</div></div></div>
+    <div class="chart-bar-row"><span class="chart-bar-label">Reprovados</span><div class="chart-bar-track"><div class="chart-bar-fill" style="width:${pct(rep)}%;background:var(--danger);">${rep}</div></div></div>
+    <div class="chart-bar-row"><span class="chart-bar-label">Pendentes</span><div class="chart-bar-track"><div class="chart-bar-fill" style="width:${pct(pen)}%;background:var(--warning);">${pen}</div></div></div>
+  </div></div>
+  ${meses.length>1?`<div class="section-card"><p class="chart-title">📅 Por Mês</p><div class="chart-bar-wrap">${meses.map(([m,q])=>`<div class="chart-bar-row"><span class="chart-bar-label">${m.slice(5)}/${m.slice(2,4)}</span><div class="chart-bar-track"><div class="chart-bar-fill" style="width:${Math.round(q/maxMes*100)}%;background:${mc};">${q}</div></div></div>`).join('')}</div></div>`:''}
+  ${topCli.length?`<div class="section-card"><p class="chart-title">👥 Top ${currentModule.color==='interna'?'Setores':'Clientes'}</p><div class="chart-bar-wrap">${topCli.map(([k,q])=>`<div class="chart-bar-row"><span class="chart-bar-label" title="${k}">${k}</span><div class="chart-bar-track"><div class="chart-bar-fill" style="width:${Math.round(q/maxCli*100)}%;background:var(--info);">${q}</div></div></div>`).join('')}</div></div>`:''}
+  ${topSvc.length?`<div class="section-card"><p class="chart-title">⚙️ Serviços</p><div class="chart-bar-wrap">${topSvc.map(([s,q])=>`<div class="chart-bar-row"><span class="chart-bar-label" title="${s}">${s.replace('MANUTENÇÃO','MANUT.').replace('CERTIFICAÇÃO','CERT.').replace('MOVIMENTAÇÃO','MOVIM.')}</span><div class="chart-bar-track"><div class="chart-bar-fill" style="width:${Math.round(q/maxSvc*100)}%;background:var(--orange);">${q}</div></div></div>`).join('')}</div></div>`:''}`;
+}
+
+// ════════════════════════════════════════════════════════════
+//  UTILITÁRIOS
+// ════════════════════════════════════════════════════════════
+function fmtDate(d) {
+  if (!d) return '—';
+  const p=d.split('-');
+  return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;
+}
+
+// ════════════════════════════════════════════════════════════
+//  CONFIGURAÇÕES (Transbordo) — localStorage
+// ════════════════════════════════════════════════════════════
+const CFG_KEY = 'tiger_transbordo_config';
+
+function cfgLoad() {
+  try { return JSON.parse(localStorage.getItem(CFG_KEY)) || { clientes:[], responsaveis:[], produtos:[] }; }
+  catch(e) { return { clientes:[], responsaveis:[], produtos:[] }; }
+}
+function cfgSave(data) { localStorage.setItem(CFG_KEY, JSON.stringify(data)); }
+
+function cfgAdd(tipo, inputId, listId) {
+  const input = document.getElementById(inputId);
+  const val = input.value.trim();
+  if (!val) { showNotification('Digite um nome para adicionar.', 'error'); return; }
+  const cfg = cfgLoad();
+  if (cfg[tipo].includes(val)) { showNotification('Já existe um item com esse nome.', 'error'); return; }
+  cfg[tipo].push(val);
+  cfgSave(cfg);
+  input.value = '';
+  cfgRenderList(tipo, listId);
+  cfgUpdateSelects();
+  showNotification('Adicionado com sucesso!');
+}
+
+window.cfgAdd = cfgAdd;
+
+window.cfgRemove = function(tipo, nome, listId) {
+  if (!confirm('Remover "' + nome + '"?')) return;
+  const cfg = cfgLoad();
+  cfg[tipo] = cfg[tipo].filter(i => i !== nome);
+  cfgSave(cfg);
+  cfgRenderList(tipo, listId);
+  cfgUpdateSelects();
+  showNotification('Removido.');
+};
+
+function cfgRenderList(tipo, listId) {
+  const el = document.getElementById(listId);
+  if (!el) return;
+  const cfg = cfgLoad();
+  const items = cfg[tipo];
+  if (!items.length) {
+    el.innerHTML = '<p style="font-size:13px;color:var(--text-muted);padding:8px 0;">Nenhum cadastro ainda.</p>';
+    return;
+  }
+  el.innerHTML = items.map(nome => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 13px;background:var(--bg-section);border:1px solid var(--border);border-radius:8px;margin-bottom:7px;">
+      <span style="font-size:14px;">${nome}</span>
+      <button class="btn btn-danger btn-sm" onclick="cfgRemove('${tipo}','${nome.replace(/'/g,"\\'")}','${listId}')">✕</button>
+    </div>`).join('');
+}
+
+function cfgRenderAll() {
+  cfgRenderList('clientes',    'cfg-clientes-list');
+  cfgRenderList('responsaveis','cfg-responsaveis-list');
+  cfgRenderList('produtos',    'cfg-produtos-list');
+}
+
+function cfgUpdateSelects() {
+  if (!currentModule || currentModule.color !== 'transbordo') return;
+  const cfg = cfgLoad();
+  const maps = [
+    { id:'cliente',    key:'clientes' },
+    { id:'responsavel',key:'responsaveis' },
+    { id:'produto',    key:'produtos' },
+  ];
+  maps.forEach(({ id, key }) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const current = el.value;
+    el.innerHTML = `<option value="">Selecione...</option>` +
+      cfg[key].map(v => `<option value="${v}"${v===current?' selected':''}>${v}</option>`).join('');
+  });
+}
+
+// ────────────────────────────────────────────────────────────
+function switchTab(tabId) {
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  const activeTab=document.querySelector('[data-tab="'+tabId+'"]');
+  if (activeTab) activeTab.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  const el=document.getElementById(tabId);
+  if (el) el.classList.add('active');
+  document.getElementById('progress-wrap').style.display=tabId==='checklist'?'flex':'none';
+  if (tabId==='historico') updateHistoryList();
+  if (tabId==='dashboard') updateDashboard();
+  if (tabId==='configuracoes') { cfgRenderAll(); }
+  if (tabId==='checklist' && currentModule?.color==='transbordo') cfgUpdateSelects();
+}
+
+function showNotification(msg, type='success') {
+  const n=document.getElementById('notification');
+  document.getElementById('notif-icon').textContent=type==='error'?'✕':'✓';
+  document.getElementById('notif-text').textContent=msg;
+  n.className='notification'+(type==='error'?' error':'');
+  clearTimeout(n._t);
+  n._t=setTimeout(()=>n.classList.add('hidden'),3500);
+}
+
+// ════════════════════════════════════════════════════════════
+//  PDF
+// ════════════════════════════════════════════════════════════
+window.generatePDF = function(id) {
+  if (!currentModule) return;
+  const c=checklists.find(x=>x.id===id);
+  if (!c) return;
+  try {
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF();
+    const W=210,H=297,mg=15,CW=W-mg*2;
+    let y=0,pages=1;
+    const addPage=()=>{ doc.addPage(); pages++; y=20; };
+    const chk=(h)=>{ if(y+h>H-18){addPage();} };
+
+    // ── CORES POR MÓDULO
+    const modColors = {
+      transbordo: { header:[15,30,60],   accent:[59,130,246],  accentTxt:[255,255,255], secBg:[20,35,65],   secTxt:[59,130,246]  },
+      interna:    { header:[10,40,25],   accent:[34,197,94],   accentTxt:[255,255,255], secBg:[15,45,28],   secTxt:[34,197,94]   },
+      externa:    { header:[20,20,20],   accent:[255,204,0],   accentTxt:[17,17,17],    secBg:[30,30,30],   secTxt:[255,204,0]   },
+    };
+    const mc = modColors[currentModule.color] || modColors.externa;
+
+    const setFont=(sz,st,col)=>{ doc.setFontSize(sz); doc.setFont('helvetica',st||'normal'); doc.setTextColor(...(col||[30,30,30])); };
+    const txt=(t,x,yy,opt)=>doc.text(String(t),x,yy,opt||{});
+    const splitTxt=(t,w)=>doc.splitTextToSize(String(t),w);
+    const secHead=(title,yy)=>{
+      chk(14);
+      doc.setFillColor(...mc.secBg); doc.rect(mg,yy,CW,8,'F');
+      setFont(9,'bold',mc.secTxt); txt(title.toUpperCase(),mg+4,yy+5.5);
+      return yy+12;
+    };
+    const pill=(txt2,x,yy,type)=>{
+      const cols={'SIM':{b:[220,252,231],d:[134,239,172],t:[22,101,52]},'NAO':{b:[254,226,226],d:[252,165,165],t:[153,27,27]},'NA':{b:[243,244,246],d:[209,213,219],t:[107,114,128]},'TROCA':{b:[255,247,237],d:[253,186,116],t:[154,52,18]},'APROVADO':{b:[220,252,231],d:[134,239,172],t:[22,101,52]},'REPROVADO':{b:[254,226,226],d:[252,165,165],t:[153,27,27]},'PENDENTE':{b:[254,249,195],d:[253,224,71],t:[133,77,14]}};
+      const col=cols[type]||cols['NA'];
+      setFont(7.5,'bold'); const tw=doc.getTextWidth(String(txt2)); const pw=tw+6,ph=5.5;
+      doc.setFillColor(...col.b); doc.setDrawColor(...col.d); doc.setLineWidth(0.3);
+      doc.roundedRect(x-pw,yy-4,pw,ph,1.5,1.5,'FD');
+      doc.setTextColor(...col.t); doc.text(String(txt2),x-pw+3,yy); setFont(8,'normal');
+    };
+    const cardBox=(yy,h)=>{ doc.setFillColor(249,249,247); doc.setDrawColor(215,215,210); doc.setLineWidth(0.25); doc.roundedRect(mg,yy,CW,h,2,2,'FD'); };
+
+    // ── CABEÇALHO
+    doc.setFillColor(...mc.header); doc.rect(0,0,W,26,'F');
+    setFont(16,'bold',mc.accent); txt('TIGER RENTANK',mg,17);
+    setFont(9,'bold',[255,255,255]); txt(currentModule.pdfTitle,W-mg,17,{align:'right'});
+    doc.setFillColor(...mc.accent); doc.rect(0,26,W,2.5,'F');
+    y=36;
+
+    // ── ID e DATA
+    setFont(8,'normal',[120,120,120]);
+    txt('ID: '+c.id+'   ·   Emitido: '+new Date(c.timestamp).toLocaleString('pt-BR'),mg,y);
+    txt('Módulo: '+currentModule.name,W-mg,y,{align:'right'});
+    y+=10;
+
+    // ── DADOS DO REGISTRO
+    y=secHead('Dados do Registro',y);
+    const campos=currentModule.campos;
+    campos.forEach((campo,i)=>{
+      const val=c[campo.id]||'—';
+      chk(8);
+      if(i%2===0){
+        setFont(7.5,'bold',[100,100,100]); txt(campo.label.replace(' *','').toUpperCase(),mg+2,y);
+        setFont(9,'normal',[30,30,30]); txt(String(val),mg+2,y+5);
+      } else {
+        setFont(7.5,'bold',[100,100,100]); txt(campo.label.replace(' *','').toUpperCase(),mg+CW/2+4,y);
+        setFont(9,'normal',[30,30,30]); txt(String(val),mg+CW/2+4,y+5);
+        y+=14;
+      }
+    });
+    if(campos.length%2!==0) y+=14;
+    y+=4;
+
+    // ── INSPEÇÃO DO EQUIPAMENTO (transbordo)
+    if(currentModule.hasEquipamentoInspecao && c.inspecaoEquipamento) {
+      const eq = c.inspecaoEquipamento;
+      const hasData = Object.values(eq).some(v => v && v !== '');
+      if(hasData) {
+        y=secHead('Inspeção do Equipamento',y);
+        chk(36);
+        const bh=36;
+        doc.setFillColor(249,249,247); doc.setDrawColor(215,215,210); doc.setLineWidth(0.25);
+        doc.roundedRect(mg,y,CW,bh,2,2,'FD');
+        const col1=mg+4, col2=mg+CW/2+4;
+        setFont(7,'normal',[100,100,100]);
+        txt('Serial/Chassi',col1,y+6); txt('Modelo do Equipamento',col2,y+6);
+        txt('Validade do Teste',col1,y+18); txt('Número do GPS',col2,y+18);
+        txt('Eslinga - Numeração',col1,y+30); txt('Eslinga - Data de Validade',col2,y+30);
+        setFont(8.5,'bold',[30,30,30]);
+        txt(eq.serialChassi||'—',col1,y+12); txt(eq.modeloEquipamento||'—',col2,y+12);
+        txt(eq.validadeTeste||'—',col1,y+24); txt(eq.numeroGPS||'—',col2,y+24);
+        txt(eq.eslingaNumeracao||'—',col1,y+36); txt(eq.eslingaValidade||'—',col2,y+36);
+        y+=bh+6;
+      }
+    }
+
+    // ── EQUIPAMENTOS (externa + interna) com fotos por equipamento
+    if(currentModule.hasEquipamentos && c.equipamentos && c.equipamentos.length) {
+      y=secHead('Equipamentos e Certificações',y);
+      const fw=43,fh=40,gap=3;
+      const fpl=Math.floor((CW+gap)/(fw+gap));
+
+      c.equipamentos.forEach((eq,idx)=>{
+        const hasObs = eq.obs && eq.obs.trim();
+        const obsLines = hasObs ? splitTxt('Obs: '+eq.obs, CW-10) : [];
+        const bh = 42 + (obsLines.length>0 ? obsLines.length*4+2 : 0);
+        chk(bh+4);
+        doc.setFillColor(249,249,247); doc.setDrawColor(215,215,210); doc.setLineWidth(0.25);
+        doc.roundedRect(mg,y,CW,bh,2,2,'FD');
+        doc.setFillColor(...mc.accent); doc.roundedRect(mg+3,y+3,30,7,1.5,1.5,'F');
+        setFont(8,'bold',mc.accentTxt); txt('EQUIP. '+(idx+1),mg+5,y+8);
+        if(eq.status) pill(eq.status,W-mg-4,y+8,eq.status);
+        setFont(7.5,'normal',[100,100,100]);
+        txt('Modelo',mg+5,y+16); txt('Nº Série',mg+5,y+24); txt('Cert.',mg+CW/2,y+16); txt('Venc.',mg+CW/2,y+24); txt('Eslinga',mg+CW/2+40,y+16); txt('Venc.Esl.',mg+CW/2+40,y+24);
+        setFont(8.5,'bold');
+        txt(eq.modelo||'—',mg+5,y+21); txt(eq.serie||'—',mg+5,y+29);
+        txt(fmtDate(eq.certData)||'—',mg+CW/2,y+21); txt(fmtDate(eq.certVenc)||'—',mg+CW/2,y+29);
+        txt(eq.eslinga||'—',mg+CW/2+40,y+21); txt(fmtDate(eq.eslingaVenc)||'—',mg+CW/2+40,y+29);
+        if(obsLines.length){ setFont(7,'bold',[185,35,35]); doc.text(obsLines,mg+5,y+37); }
+        y+=bh+4;
+
+        // Fotos deste equipamento
+        if(eq.fotos && eq.fotos.length){
+          chk(fh+14);
+          setFont(7.5,'bold',[100,100,100]); txt('📷 Fotos — Equipamento '+(idx+1),mg,y+5);
+          y+=10;
+          for(let row=0;row<Math.ceil(eq.fotos.length/fpl);row++){
+            if(y+fh+4>H-16){addPage();}
+            for(let col=0;col<fpl;col++){
+              const fi=row*fpl+col;
+              if(fi>=eq.fotos.length) break;
+              const foto=eq.fotos[fi], xPos=mg+col*(fw+gap), yPos=y;
+              doc.setFillColor(245,245,240); doc.setDrawColor(208,208,200); doc.setLineWidth(0.25);
+              doc.roundedRect(xPos,yPos,fw,fh,2,2,'FD');
+              try{ if(foto?.base64?.startsWith('data:image')){ const fmt=foto.base64.includes('/png')?'PNG':'JPEG'; doc.addImage(foto.base64,fmt,xPos+1,yPos+1,fw-2,fh-2); } }catch(e){}
+              doc.setFillColor(20,20,20); doc.roundedRect(xPos+fw-9,yPos+fh-7,8,5.5,1,1,'F');
+              setFont(6,'bold',[255,255,255]); txt(String(fi+1),xPos+fw-5.5,yPos+fh-3.5,{align:'center'});
+            }
+            y+=fh+gap;
+          }
+          y+=4;
+        }
+      });
+    }
+
+    // ── SERVIÇOS (não exibir no transbordo)
+    if(c.servicos && c.servicos.length && currentModule.hasServicos) {
+      y=secHead('Serviços Realizados',y);
+      const cols=3, cw=CW/cols;
+      c.servicos.forEach((s,i)=>{
+        chk(8);
+        const col=i%cols, row=Math.floor(i/cols);
+        if(i%cols===0 && i>0) y+=8;
+        setFont(7.5,'bold',[34,197,94]); txt('✓',mg+col*cw,y+row*0);
+        setFont(7.5,'normal',[30,30,30]); txt(s,mg+col*cw+6,y+row*0);
+      });
+      y+=12;
+    }
+
+    // ── INSPEÇÃO
+    const inspecaoTitulo = (currentModule.hasEquipamentoInspecao && c.inspecaoEquipamento?._tipoInspecao)
+      ? c.inspecaoEquipamento._tipoInspecao
+      : 'Inspeção Técnica';
+    y=secHead(inspecaoTitulo,y);
+
+    // Mapa de índice → título de grupo (para módulos com inspecaoGrupos)
+    const grupoMap = {};
+    if(currentModule.inspecaoGrupos) {
+      let gi=0;
+      currentModule.inspecaoGrupos.forEach(grupo => {
+        grupo.itens.forEach(() => { gi++; grupoMap[gi]=grupo.titulo; });
+      });
+    }
+    let lastGrupo = '';
+
+    Object.values(c.respostasInspecao||{}).forEach((item,idx)=>{
+      const num = idx+1;
+      // Imprimir cabeçalho de grupo quando mudar
+      if(grupoMap[num] && grupoMap[num]!==lastGrupo){
+        chk(10);
+        doc.setFillColor(...mc.secBg); doc.roundedRect(mg,y,CW,7,1.5,1.5,'F');
+        setFont(8,'bold',mc.secTxt); txt(grupoMap[num].toUpperCase(),mg+4,y+5);
+        y+=10; lastGrupo=grupoMap[num];
+      }
+      const qLines=splitTxt(num+'. '+item.pergunta,CW-38);
+      const obsLines=((item.resposta==='NÃO'||item.resposta==='TROCA')&&item.obsNao)?splitTxt('⚠ '+item.obsNao,CW-12):[];
+      const ih=Math.max(qLines.length*4.5+6,10)+(obsLines.length>0?obsLines.length*4+2:0);
+      chk(ih+3);
+      const isNao=item.resposta==='NÃO';
+      const isTroca=item.resposta==='TROCA';
+      doc.setFillColor(...(isNao?[255,246,246]:isTroca?[255,251,235]:[250,250,248]));
+      doc.setDrawColor(...(isNao?[252,165,165]:isTroca?[253,186,116]:[215,215,210]));
+      doc.setLineWidth(isNao||isTroca?0.4:0.25);
+      doc.roundedRect(mg,y,CW,ih,2,2,'FD');
+      setFont(7.5,'normal',[35,35,35]);
+      doc.text(qLines,mg+4,y+5);
+      pill(item.resposta,W-mg-4,y+7,item.resposta==='SIM'?'SIM':item.resposta==='NÃO'?'NAO':item.resposta==='TROCA'?'TROCA':'NA');
+      if(obsLines.length){ setFont(7,'bold',[185,35,35]); doc.text(obsLines,mg+4,y+5+qLines.length*4.5); }
+      y+=ih+3;
+    });
+    y+=2;
+
+    // ── OBSERVAÇÕES
+    if(c.observacoes){
+      chk(20); y=secHead('Observações Gerais',y);
+      const ol=splitTxt(c.observacoes,CW-10); const bh=ol.length*4.5+8;
+      cardBox(y,bh); setFont(8.5,'normal',[45,45,45]); doc.text(ol,mg+5,y+6); y+=bh+8;
+    }
+
+    // ── ASSINATURAS
+    const sigsParaExibir = currentModule.color==='transbordo'
+      ? [{label:'Responsável', data:c.assinatura}]
+      : [{label:'Responsável', data:c.assinatura},{label:'Cliente / Receptor', data:c.assinaturaCliente}];
+    if(sigsParaExibir.some(s=>s.data)){
+      chk(44); y=secHead('Assinaturas',y);
+      const sigW = currentModule.color==='transbordo' ? CW : (CW-8)/2;
+      sigsParaExibir.forEach((sig,si)=>{
+        const sx = currentModule.color==='transbordo' ? mg : mg+si*(sigW+8);
+        doc.setFillColor(255,255,255); doc.setDrawColor(210,210,205); doc.setLineWidth(0.3);
+        doc.roundedRect(sx,y,sigW,32,2.5,2.5,'FD');
+        setFont(7,'normal',[155,155,155]); txt(sig.label.toUpperCase(),sx+4,y+6);
+        doc.setDrawColor(205,205,200); doc.line(sx+4,y+26,sx+sigW-4,y+26);
+        if(sig.data){ try{doc.addImage(sig.data,'PNG',sx+4,y+8,sigW-8,16);}catch(e){} }
+      });
+      y+=40;
+    }
+
+    // ── RODAPÉ
+    for(let p=1;p<=pages;p++){
+      doc.setPage(p);
+      doc.setFillColor(248,248,246); doc.rect(0,H-14,W,14,'F');
+      // Linha colorida do módulo
+      doc.setFillColor(...mc.accent); doc.rect(0,H-14,W,1.5,'F');
+      setFont(7.5,'normal',[150,150,150]);
+      txt('Tiger Rentank · '+currentModule.name+' · '+(c.cliente||c.responsavel||''),mg,H-7);
+      txt('Página '+p+' de '+pages,W-mg,H-7,{align:'right'});
+    }
+
+    const nomeCliente=(c.cliente||c.responsavel||'Registro').replace(/\s+/g,'_');
+    doc.save(currentModule.color+'_'+nomeCliente+'_'+(c.data||new Date().toISOString().slice(0,10))+'.pdf');
+    showNotification('PDF gerado com sucesso!');
+  } catch(e) {
+    showNotification('Erro PDF: '+e.message,'error');
+    console.error(e);
+  }
+};
+
+// ════════════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  loadTheme();
+  // Theme toggle on selector page
+  document.getElementById('theme-toggle')?.addEventListener('click', toggleTheme);
+});
+</script>
+</body>
+</html>
