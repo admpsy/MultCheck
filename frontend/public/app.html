@@ -2216,17 +2216,45 @@ window.generatePDF = function(id) {
     doc.setFillColor(...mc.accent); doc.rect(0,26,W,2.5,'F');
     y=36;
 
-    // ── ID e DATA
-    setFont(8,'normal',[120,120,120]);
-    txt('ID: '+c.id+'   ·   Emitido: '+new Date(c.timestamp).toLocaleString('pt-BR'),mg,y);
-    txt('Módulo: '+currentModule.name,W-mg,y,{align:'right'});
-    y+=10;
+    // ── Função para calcular dias restantes
+    const calcDiasRestantes = (dataVenc) => {
+      if (!dataVenc) return null;
+      const hoje = new Date();
+      hoje.setHours(0,0,0,0);
+      const venc = new Date(dataVenc);
+      venc.setHours(0,0,0,0);
+      const diff = Math.ceil((venc - hoje) / (1000 * 60 * 60 * 24));
+      return diff;
+    };
+    
+    // ── Função para calcular tempo total entre horas
+    const calcTempoTotal = (horaChegada, horaSaida) => {
+      if (!horaChegada || !horaSaida) return null;
+      const [h1, m1] = horaChegada.split(':').map(Number);
+      const [h2, m2] = horaSaida.split(':').map(Number);
+      if (isNaN(h1) || isNaN(m1) || isNaN(h2) || isNaN(m2)) return null;
+      let minutos = (h2 * 60 + m2) - (h1 * 60 + m1);
+      if (minutos < 0) minutos += 24 * 60; // passou da meia-noite
+      const horas = Math.floor(minutos / 60);
+      const mins = minutos % 60;
+      return `${horas}h ${mins.toString().padStart(2,'0')}min`;
+    };
 
     // ── DADOS DO REGISTRO
     y=secHead('Dados do Registro',y);
     const campos=currentModule.campos;
+    
+    // Calcular tempo total se tiver hora de chegada e saída
+    const tempoTotal = calcTempoTotal(c.horaChegada, c.horaSaida);
+    
     campos.forEach((campo,i)=>{
-      const val=c[campo.id]||'—';
+      let val=c[campo.id]||'—';
+      
+      // Adicionar tempo total ao lado de Hora de Saída
+      if (campo.id === 'horaSaida' && tempoTotal) {
+        val = val + '  (Tempo Total: ' + tempoTotal + ')';
+      }
+      
       chk(8);
       if(i%2===0){
         setFont(7.5,'bold',[100,100,100]); txt(campo.label.replace(' *','').toUpperCase(),mg+2,y);
@@ -2263,7 +2291,7 @@ window.generatePDF = function(id) {
       }
     }
 
-    // ── EQUIPAMENTOS (externa + interna) com fotos por equipamento
+    // ── EQUIPAMENTOS (externa + interna + transbordo) com fotos por equipamento
     if(currentModule.hasEquipamentos && c.equipamentos && c.equipamentos.length) {
       y=secHead('Equipamentos e Certificações',y);
       const fw=43,fh=40,gap=3;
@@ -2272,7 +2300,12 @@ window.generatePDF = function(id) {
       c.equipamentos.forEach((eq,idx)=>{
         const hasObs = eq.obs && eq.obs.trim();
         const obsLines = hasObs ? splitTxt('Obs: '+eq.obs, CW-10) : [];
-        const bh = 42 + (obsLines.length>0 ? obsLines.length*4+2 : 0);
+        
+        // Calcular dias restantes para certificações
+        const diasCert = calcDiasRestantes(eq.certVenc);
+        const diasEslinga = calcDiasRestantes(eq.eslingaVenc);
+        
+        const bh = 50 + (obsLines.length>0 ? obsLines.length*4+2 : 0);
         chk(bh+4);
         doc.setFillColor(249,249,247); doc.setDrawColor(215,215,210); doc.setLineWidth(0.25);
         doc.roundedRect(mg,y,CW,bh,2,2,'FD');
@@ -2280,12 +2313,28 @@ window.generatePDF = function(id) {
         setFont(8,'bold',mc.accentTxt); txt('EQUIP. '+(idx+1),mg+5,y+8);
         if(eq.status) pill(eq.status,W-mg-4,y+8,eq.status);
         setFont(7.5,'normal',[100,100,100]);
-        txt('Modelo',mg+5,y+16); txt('Nº Série',mg+5,y+24); txt('Cert.',mg+CW/2,y+16); txt('Venc.',mg+CW/2,y+24); txt('Eslinga',mg+CW/2+40,y+16); txt('Venc.Esl.',mg+CW/2+40,y+24);
+        txt('Modelo',mg+5,y+16); txt('Nº Série',mg+5,y+24); 
+        txt('Cert.',mg+CW/2,y+16); txt('Venc.',mg+CW/2,y+24); 
+        txt('Eslinga',mg+CW/2+40,y+16); txt('Venc.Esl.',mg+CW/2+40,y+24);
         setFont(8.5,'bold');
         txt(eq.modelo||'—',mg+5,y+21); txt(eq.serie||'—',mg+5,y+29);
         txt(fmtDate(eq.certData)||'—',mg+CW/2,y+21); txt(fmtDate(eq.certVenc)||'—',mg+CW/2,y+29);
         txt(eq.eslinga||'—',mg+CW/2+40,y+21); txt(fmtDate(eq.eslingaVenc)||'—',mg+CW/2+40,y+29);
-        if(obsLines.length){ setFont(7,'bold',[185,35,35]); doc.text(obsLines,mg+5,y+37); }
+        
+        // Adicionar dias restantes
+        let diasY = y + 36;
+        if (diasCert !== null) {
+          const corCert = diasCert > 120 ? [22,163,74] : diasCert > 30 ? [234,179,8] : [220,38,38];
+          setFont(7,'bold', corCert);
+          txt(diasCert > 0 ? '✓ '+diasCert+' dias restantes (Cert.)' : '⚠ Vencido há '+Math.abs(diasCert)+' dias', mg+CW/2, diasY);
+        }
+        if (diasEslinga !== null) {
+          const corEsl = diasEslinga > 120 ? [22,163,74] : diasEslinga > 30 ? [234,179,8] : [220,38,38];
+          setFont(7,'bold', corEsl);
+          txt(diasEslinga > 0 ? '✓ '+diasEslinga+' dias restantes (Esl.)' : '⚠ Vencido há '+Math.abs(diasEslinga)+' dias', mg+CW/2+40, diasY);
+        }
+        
+        if(obsLines.length){ setFont(7,'bold',[185,35,35]); doc.text(obsLines,mg+5,y+45); }
         y+=bh+4;
 
         // Fotos deste equipamento
@@ -2394,14 +2443,14 @@ window.generatePDF = function(id) {
       y+=40;
     }
 
-    // ── RODAPÉ
+    // ── RODAPÉ (simplificado)
     for(let p=1;p<=pages;p++){
       doc.setPage(p);
       doc.setFillColor(248,248,246); doc.rect(0,H-14,W,14,'F');
       // Linha colorida do módulo
       doc.setFillColor(...mc.accent); doc.rect(0,H-14,W,1.5,'F');
       setFont(7.5,'normal',[150,150,150]);
-      txt('Tiger Rentank · '+currentModule.name+' · '+(c.cliente||c.responsavel||''),mg,H-7);
+      txt('Tiger Rentank',mg,H-7);
       txt('Página '+p+' de '+pages,W-mg,H-7,{align:'right'});
     }
 
