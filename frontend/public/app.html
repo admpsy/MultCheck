@@ -1352,7 +1352,7 @@ function getEquipamentoTemplate(index) {
       <button type="button" class="btn btn-danger btn-sm" onclick="removerEquipamento(${index})">✕ Remover</button>
     </div>
     <div class="form-grid">
-      <div class="form-group"><label>Nº Série</label><input type="text" class="equipamento-serie" placeholder="Número de série"></div>
+      <div class="form-group"><label>N° de Serie / Chassis</label><input type="text" class="equipamento-serie" placeholder="N° de Serie / Chassis"></div>
       <div class="form-group"><label>Modelo</label><select class="equipamento-modelo">${modelosOptions}</select></div>
       <div class="form-group"><label>Número do GPS</label><input type="text" class="equipamento-gps" placeholder="Número do GPS"></div>
       <div class="form-group"><label>Data da Certificação</label><input type="date" class="equipamento-cert-data"></div>
@@ -2057,7 +2057,7 @@ function updateHistoryList() {
     const card=document.createElement('div'); card.className='history-card';
     card.innerHTML=`<div class="history-info">
       <div class="history-client">${item.cliente||item.responsavel||'—'}</div>
-      <div class="history-meta"><span>📅 ${fmtDate(item.data)}</span><span class="meta-dot">·</span><span>👤 ${item.responsavel||item.inspetor1||'—'}</span><span class="meta-dot">·</span><span>📷 ${(item.equipamentos||[]).reduce((a,eq)=>a+(eq.fotos?.length||0),0)}</span></div>
+      <div class="history-meta"><span>📅 ${fmtDate(item.data)}</span><span class="meta-dot">·</span><span>👤 ${item.responsavel||item.inspetor1||'—'}</span><span class="meta-dot">·</span><span>📷 ${(item.equipamentos||[]).reduce((a,eq)=>a+(eq.fotos?.length||0),0)}</span>${(()=>{const s=(item.equipamentos||[]).map(e=>e.serie).filter(Boolean);return s.length?'<span class="meta-dot">·</span><span>N° de Serie / Chassis: '+s.join(', ')+'</span>':''})()}</div>
       <div style="margin-top:6px;"><span class="status-badge ${bc}">${item.status}</span></div>
     </div>
     <div class="history-actions">
@@ -2441,7 +2441,7 @@ window.generatePDF = function(id) {
         doc.roundedRect(mg,y,CW,bh,2,2,'FD');
         const col1=mg+4, col2=mg+CW/2+4;
         setFont(7,'normal',[100,100,100]);
-        txt('Serial/Chassi',col1,y+6); txt('Modelo do Equipamento',col2,y+6);
+        txt('N° de Serie / Chassis',col1,y+6); txt('Modelo do Equipamento',col2,y+6);
         txt('Validade do Teste',col1,y+18); txt('Número do GPS',col2,y+18);
         txt('Eslinga - Numeração',col1,y+30); txt('Eslinga - Data de Validade',col2,y+30);
         setFont(8.5,'bold',[30,30,30]);
@@ -2488,7 +2488,7 @@ window.generatePDF = function(id) {
         setFont(8,'bold',mc.accentTxt); txt('EQUIP. '+(idx+1),mg+5,y+8);
         if(eq.status) pill(eq.status,W-mg-4,y+8,eq.status);
         setFont(7.5,'normal',[100,100,100]);
-        txt('Modelo',mg+5,y+16); txt('Nº Série',mg+5,y+24); txt('GPS',mg+5,y+32);
+        txt('Modelo',mg+5,y+16); txt('N° de Serie / Chassis',mg+5,y+24); txt('GPS',mg+5,y+32);
         txt('Cert.',mg+CW/2,y+16); txt('Venc.',mg+CW/2,y+24); 
         txt('Eslinga',mg+CW/2+40,y+16); txt('Venc.Esl.',mg+CW/2+40,y+24);
         setFont(8.5,'bold');
