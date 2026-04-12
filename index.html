@@ -868,9 +868,7 @@ const MODULES = {
       { id:'responsavel',   label:'Responsável *',    type:'text', placeholder:'Nome do responsável', span:1 },
       { id:'data',          label:'Data *',            type:'date', placeholder:'',                    span:1 },
       { id:'cliente',       label:'Cliente *',         type:'text', placeholder:'Nome do cliente',     span:1 },
-      { id:'motivo',        label:'Motivo *',          type:'select', options:['','Manutenção','Entrega','Devolução','Empréstimo','Outros'], span:1 },
-      { id:'horaInicial',   label:'Hora Inicial *',    type:'text', placeholder:'HH:MM', inputmode:'numeric', maxlength:'5', span:1 },
-      { id:'horaFinal',     label:'Hora Final *',      type:'text', placeholder:'HH:MM', inputmode:'numeric', maxlength:'5', span:1 },
+      { id:'motivo',        label:'Motivo *',          type:'select', options:['','Manutenção','Entrega','Devolução'], span:1 },
     ],
     servicos: [],
     hasServicos: false,
@@ -970,7 +968,7 @@ const MODULES = {
       'Número de Série (Teto e Laterais) — Legível e conforme cadastro?',
     ],
     statusPor: 'equipamentos',
-    requiredIds: ['responsavel','data','cliente','motivo','horaInicial','horaFinal'],
+    requiredIds: ['responsavel','data','cliente','motivo'],
   },
   externa: {
     name: 'Logística Externa',
@@ -1530,6 +1528,30 @@ function addEquipamento() {
   const idx = equipamentoCount;
   const input = document.getElementById('eq-foto-input-'+idx);
   if (input) input.addEventListener('change', function() { eqAddFotos(this, idx); });
+
+  // Hook para alternar dinamicamente a inspeção na Logística Interna
+  const select = el.querySelector('.equipamento-modelo');
+  if (select && currentModule && currentModule.color === 'interna') {
+    select.addEventListener('change', function() {
+      const val = this.value.toUpperCase();
+      const contentoresTypes = ['RIET', 'FRAC', 'GAPE', 'HELI', 'OCTO'];
+      const isContentor = contentoresTypes.some(t => val.includes(t));
+
+      const inspecaoCard = document.getElementById('inspecao-itens').closest('.section-card');
+      const inspecaoHeader = inspecaoCard ? inspecaoCard.querySelector('.section-title') : null;
+
+      if (isContentor) {
+        if (inspecaoHeader) inspecaoHeader.textContent = 'Inspeção da Carga — Contentores';
+        document.getElementById('inspecao-itens').innerHTML = buildInspecaoHTML(MODULES.transbordo.inspecaoContentores, false);
+      } else {
+        if (inspecaoHeader) inspecaoHeader.textContent = 'Inspeção do Equipamento';
+        document.getElementById('inspecao-itens').innerHTML = buildInspecaoGruposHTML(MODULES.interna.inspecaoGrupos);
+      }
+      rebindInspecaoEvents();
+      updateProgress();
+    });
+  }
+
   equipamentoCount++;
 }
 
@@ -1925,7 +1947,11 @@ function fillFormWithData(d) {
       const card = document.querySelector('#equipamento-'+(idx+1));
       if (!card) return;
       card.querySelector('.equipamento-serie').value = eq.serie || '';
-      card.querySelector('.equipamento-modelo').value = eq.modelo || '';
+      const elSelectModelo = card.querySelector('.equipamento-modelo');
+      if (elSelectModelo) {
+        elSelectModelo.value = eq.modelo || '';
+        elSelectModelo.dispatchEvent(new Event('change'));
+      }
       card.querySelector('.equipamento-gps').value = eq.gps || '';
       card.querySelector('.equipamento-cert-data').value = eq.certData || '';
       card.querySelector('.equipamento-cert-venc').value = eq.certVenc || '';
@@ -2755,14 +2781,14 @@ window.generatePDF = function(id) {
     }
 
     // ── ASSINATURAS
-    const sigsParaExibir = currentModule.color==='transbordo'
-      ? [{label:'Responsável', data:c.assinatura}]
-      : [{label:'Responsável', data:c.assinatura},{label:'Cliente / Receptor', data:c.assinaturaCliente}];
+    const sigsParaExibir = currentModule.color==='externa'
+      ? [{label:'Responsável', data:c.assinatura},{label:'Cliente / Receptor', data:c.assinaturaCliente}]
+      : [{label:'Responsável', data:c.assinatura}];
     if(sigsParaExibir.some(s=>s.data)){
       chk(44); y=secHead('Assinaturas',y);
-      const sigW = currentModule.color==='transbordo' ? CW : (CW-8)/2;
+      const sigW = currentModule.color!=='externa' ? CW : (CW-8)/2;
       sigsParaExibir.forEach((sig,si)=>{
-        const sx = currentModule.color==='transbordo' ? mg : mg+si*(sigW+8);
+        const sx = currentModule.color!=='externa' ? mg : mg+si*(sigW+8);
         doc.setFillColor(255,255,255); doc.setDrawColor(210,210,205); doc.setLineWidth(0.3);
         doc.roundedRect(sx,y,sigW,32,2.5,2.5,'FD');
         setFont(7,'normal',[155,155,155]); txt(sig.label.toUpperCase(),sx+4,y+6);
