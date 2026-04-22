@@ -529,10 +529,10 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0;}
       <span class="module-badge badge-green">Interna</span>
     </div>
     <div class="module-card externa" id="card-externa" onclick="selectModule('externa')">
-      <div class="module-icon">🚛</div>
-      <div class="module-name">Logística Externa</div>
+      <div class="module-icon">🔧</div>
+      <div class="module-name">Assistência Técnica</div>
       <div class="module-desc">Atendimentos externos, certificação e inspeção de equipamentos.</div>
-      <span class="module-badge badge-yellow">Externa</span>
+      <span class="module-badge badge-yellow">Ext.</span>
     </div>
     <div class="module-card visao-geral" id="card-visao" onclick="selectModule('visao')">
       <div class="module-icon">📊</div>
@@ -972,14 +972,14 @@ const MODULES = {
     requiredIds: ['responsavel','data','setor','motivo'],
   },
   externa: {
-    name: 'Logística Externa',
-    icon: '🚛',
+    name: 'Assistência Técnica',
+    icon: '🔧',
     color: 'externa',
     cssColor: '#FFCC00',
     cssGlow: 'rgba(255,204,0,0.22)',
     dbStore: 'checklists_externa',
     draftKey: 'tiger_draft_externa',
-    pdfTitle: 'RELATÓRIO DE ATENDIMENTO EXTERNO',
+    pdfTitle: 'RELATÓRIO DE ASSISTÊNCIA TÉCNICA',
     campos: [
       { id:'inspetor1',    label:'Inspeção Tiger 1 *',  type:'select', options:[''],      span:1 },
       { id:'inspetor2',    label:'Inspeção Tiger 2',     type:'select', options:[''],      span:1 },
@@ -1191,9 +1191,9 @@ async function buildVisaoGeral() {
         <div class="visao-card-label">Log. Interna <span class="mod-chip chip-interna">registros</span></div>
       </div>
       <div class="visao-card externa" onclick="selectModule('externa')">
-        <div style="font-size:22px;margin-bottom:8px;">🚛</div>
+        <div style="font-size:22px;margin-bottom:8px;">🔧</div>
         <div class="visao-card-num" style="color:var(--yellow-dark)">${totalE}</div>
-        <div class="visao-card-label">Log. Externa <span class="mod-chip chip-externa">registros</span></div>
+        <div class="visao-card-label">Assist. Técnica <span class="mod-chip chip-externa">registros</span></div>
       </div>
     </div>
     <div class="stats-grid">
