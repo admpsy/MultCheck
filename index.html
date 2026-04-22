@@ -866,9 +866,9 @@ const MODULES = {
     draftKey: 'tiger_draft_interna',
     pdfTitle: 'CHECKLIST DE LOGÍSTICA INTERNA',
     campos: [
-      { id:'responsavel',   label:'Responsável *',    type:'text', placeholder:'Nome do responsável', span:1 },
+      { id:'responsavel',   label:'Responsável *',    type:'select', options:[''], span:1 },
       { id:'data',          label:'Data *',            type:'date', placeholder:'',                    span:1 },
-      { id:'cliente',       label:'Cliente *',         type:'text', placeholder:'Nome do cliente',     span:1 },
+      { id:'setor',         label:'Setor *',           type:'select', options:[''],                    span:1 },
       { id:'motivo',        label:'Motivo *',          type:'select', options:['','Manutenção','Entrega','Devolução'], span:1 },
     ],
     servicos: [],
@@ -969,7 +969,7 @@ const MODULES = {
       'Número de Série (Teto e Laterais) — Legível e conforme cadastro?',
     ],
     statusPor: 'equipamentos',
-    requiredIds: ['responsavel','data','cliente','motivo'],
+    requiredIds: ['responsavel','data','setor','motivo'],
   },
   externa: {
     name: 'Logística Externa',
@@ -1303,8 +1303,8 @@ function rebindInspecaoEvents() {
 function buildForm() {
   const mod = currentModule;
 
-  // Reset nav — transbordo e externa têm aba extra de Configurações
-  if (mod.color === 'transbordo' || mod.color === 'externa') {
+  // Reset nav — transbordo, interna e externa têm aba extra de Configurações
+  if (['transbordo', 'interna', 'externa'].includes(mod.color)) {
     document.getElementById('main-nav').innerHTML = `
       <a href="#" class="nav-tab active" data-tab="checklist"><span>📋</span> Checklist</a>
       <a href="#" class="nav-tab" data-tab="historico"><span>📂</span> Histórico</a>
@@ -1344,8 +1344,8 @@ function buildForm() {
   const dataEl = document.getElementById('data');
   if (dataEl) dataEl.value = new Date().toISOString().split('T')[0];
 
-  // Popular selects de configuração (transbordo e externa)
-  if (mod.color === 'transbordo' || mod.color === 'externa') cfgUpdateSelects();
+  // Popular selects de configuração (transbordo, interna e externa)
+  if (['transbordo', 'interna', 'externa'].includes(mod.color)) cfgUpdateSelects();
 
   // ── Remover seção antiga de inspeção do equipamento (não mais usado)
   let secEqInsp = document.getElementById('section-equip-inspecao');
@@ -2086,7 +2086,7 @@ function clearForm() {
   if (signaturePadCliente) signaturePadCliente.clear();
   editingId=null;
   document.getElementById('form-title').textContent = 'Novo Registro — '+currentModule.name;
-  if (currentModule.color==='transbordo') cfgUpdateSelects();
+  if (['transbordo', 'interna', 'externa'].includes(currentModule.color)) cfgUpdateSelects();
   updateProgress();
 }
 
@@ -2346,6 +2346,8 @@ function cfgLoad() {
     responsaveis:[], 
     produtos:[], 
     modelos:[],
+    setores_interna: ['Operação', 'Manutenção', 'Logística', 'Qualidade', 'Segurança'],
+    responsaveis_interna: [],
     inspetores_externa: [
       'Altair da Conceição', 'Edvan Barreto', 'Filipe Conforte', 'Geilson Chiaretti', 'Igor Santos',
       'Jerlem Max Chiaretti', 'Jhony Roger', 'Jocemir Junior', 'Leandro Chagas', 'Luciano Moura',
@@ -2377,11 +2379,9 @@ function cfgLoad() {
   };
   try { 
     const data = JSON.parse(localStorage.getItem(CFG_KEY)) || defaults; 
-    // Garantir que novas chaves existam se o localStorage já tiver dados antigos
     Object.keys(defaults).forEach(k => {
       if (!data[k]) data[k] = defaults[k];
       else if (Array.isArray(data[k]) && data[k].length === 0 && defaults[k].length > 0) {
-        // Se a lista estiver vazia e o default tiver dados, re-povoa (opcional, mas ajuda na migração)
         data[k] = defaults[k];
       }
     });
@@ -2435,7 +2435,9 @@ function cfgRenderList(tipo, listId) {
 
 function cfgRenderAll() {
   if (!currentModule) return;
-  const isExterna = currentModule.color === 'externa';
+  const mod = currentModule.color;
+  const isExterna = mod === 'externa';
+  const isInterna = mod === 'interna';
   
   // Update Config subtitle
   const configSubtitle = document.querySelector('#configuracoes .page-subtitle');
@@ -2444,28 +2446,50 @@ function cfgRenderAll() {
   }
 
   // Titulos e labels
-  document.getElementById('cfg-title-clientes').textContent = isExterna ? 'Clientes (Externa)' : 'Clientes';
-  document.getElementById('cfg-title-responsaveis').textContent = isExterna ? 'Inspetores (Externa)' : 'Responsáveis';
-  document.getElementById('cfg-cliente-input').placeholder = isExterna ? 'Nome do cliente externa...' : 'Nome do cliente...';
-  document.getElementById('cfg-responsavel-input').placeholder = isExterna ? 'Nome do inspetor...' : 'Nome do responsável...';
+  const titleCli = document.getElementById('cfg-title-clientes');
+  const titleResp = document.getElementById('cfg-title-responsaveis');
+  const inputCli = document.getElementById('cfg-cliente-input');
+  const inputResp = document.getElementById('cfg-responsavel-input');
+
+  if (isExterna) {
+    titleCli.textContent = 'Clientes (Externa)';
+    titleResp.textContent = 'Inspetores (Externa)';
+    inputCli.placeholder = 'Nome do cliente externa...';
+    inputResp.placeholder = 'Nome do inspetor...';
+  } else if (isInterna) {
+    titleCli.textContent = 'Setores (Interna)';
+    titleResp.textContent = 'Responsáveis (Interna)';
+    inputCli.placeholder = 'Nome do setor...';
+    inputResp.placeholder = 'Nome do responsável...';
+  } else {
+    titleCli.textContent = 'Clientes';
+    titleResp.textContent = 'Responsáveis';
+    inputCli.placeholder = 'Nome do cliente...';
+    inputResp.placeholder = 'Nome do responsável...';
+  }
+
+  // Chaves de configuração
+  const keyCli = isExterna ? 'clientes_externa' : (isInterna ? 'setores_interna' : 'clientes');
+  const keyResp = isExterna ? 'inspetores_externa' : (isInterna ? 'responsaveis_interna' : 'responsaveis');
 
   // Configurar botões de adicionar
-  document.getElementById('cfg-btn-add-cliente').onclick = () => cfgAdd(isExterna ? 'clientes_externa' : 'clientes', 'cfg-cliente-input', 'cfg-clientes-list');
-  document.getElementById('cfg-btn-add-responsavel').onclick = () => cfgAdd(isExterna ? 'inspetores_externa' : 'responsaveis', 'cfg-responsavel-input', 'cfg-responsaveis-list');
+  document.getElementById('cfg-btn-add-cliente').onclick = () => cfgAdd(keyCli, 'cfg-cliente-input', 'cfg-clientes-list');
+  document.getElementById('cfg-btn-add-responsavel').onclick = () => cfgAdd(keyResp, 'cfg-responsavel-input', 'cfg-responsaveis-list');
 
   // Render lists
-  cfgRenderList(isExterna ? 'clientes_externa' : 'clientes',    'cfg-clientes-list');
-  cfgRenderList(isExterna ? 'inspetores_externa' : 'responsaveis', 'cfg-responsaveis-list');
+  cfgRenderList(keyCli,  'cfg-clientes-list');
+  cfgRenderList(keyResp, 'cfg-responsaveis-list');
   
   // Show/Hide products and models (only for transbordo)
   const productSec = document.getElementById('cfg-section-produtos');
   const modelSec = document.getElementById('cfg-section-modelos');
-  if (productSec) productSec.style.display = isExterna ? 'none' : 'block';
-  if (modelSec) modelSec.style.display = isExterna ? 'none' : 'block';
+  const isTransbordo = mod === 'transbordo';
+  if (productSec) productSec.style.display = isTransbordo ? 'block' : 'none';
+  if (modelSec) modelSec.style.display = isTransbordo ? 'block' : 'none';
 
-  if (!isExterna) {
-    cfgRenderList('produtos',    'cfg-produtos-list');
-    cfgRenderList('modelos',     'cfg-modelos-list');
+  if (isTransbordo) {
+    cfgRenderList('produtos', 'cfg-produtos-list');
+    cfgRenderList('modelos',  'cfg-modelos-list');
   }
   
   cfgRenderUsers();
@@ -2526,21 +2550,27 @@ window.cfgRemoveUser = function(id) {
 };
 
 function cfgUpdateSelects() {
-  if (!currentModule || (currentModule.color !== 'transbordo' && currentModule.color !== 'externa')) return;
+  if (!currentModule || !['transbordo', 'interna', 'externa'].includes(currentModule.color)) return;
   const cfg = cfgLoad();
+  const mod = currentModule.color;
   
   let maps = [];
-  if (currentModule.color === 'transbordo') {
+  if (mod === 'transbordo') {
     maps = [
       { id:'cliente',    key:'clientes' },
       { id:'responsavel',key:'responsaveis' },
       { id:'produto',    key:'produtos' },
     ];
-  } else if (currentModule.color === 'externa') {
+  } else if (mod === 'externa') {
     maps = [
       { id:'inspetor1',  key:'inspetores_externa' },
       { id:'inspetor2',  key:'inspetores_externa' },
       { id:'cliente',    key:'clientes_externa' },
+    ];
+  } else if (mod === 'interna') {
+    maps = [
+      { id:'setor',       key:'setores_interna' },
+      { id:'responsavel', key:'responsaveis_interna' },
     ];
   }
   
@@ -2575,7 +2605,7 @@ function switchTab(tabId) {
   if (tabId==='historico') updateHistoryList();
   if (tabId==='dashboard') updateDashboard();
   if (tabId==='configuracoes') { cfgRenderAll(); }
-  if (tabId==='checklist' && (currentModule?.color==='transbordo' || currentModule?.color==='externa')) cfgUpdateSelects();
+  if (tabId==='checklist' && (['transbordo', 'interna', 'externa'].includes(currentModule?.color))) cfgUpdateSelects();
 }
 
 function showNotification(msg, type='success') {
@@ -2954,7 +2984,7 @@ window.generatePDF = function(id) {
       txt('Página '+p+' de '+pages,W-mg,H-7,{align:'right'});
     }
 
-    const nomeCliente=(c.cliente||c.responsavel||'Registro').replace(/\s+/g,'_');
+    const nomeCliente=(c.cliente||c.setor||c.responsavel||'Registro').replace(/\s+/g,'_');
     doc.save(currentModule.color+'_'+nomeCliente+'_'+(c.data||new Date().toISOString().slice(0,10))+'.pdf');
     showNotification('PDF gerado com sucesso!');
   } catch(e) {
