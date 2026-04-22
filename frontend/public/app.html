@@ -2469,8 +2469,7 @@ window.generatePDF = function(id) {
     // ── EQUIPAMENTOS (externa + interna + transbordo) com fotos por equipamento
     if(currentModule.hasEquipamentos && c.equipamentos && c.equipamentos.length) {
       y=secHead('Equipamentos e Certificações',y);
-      const fw=43,fh=40,gap=3;
-      const fpl=Math.floor((CW+gap)/(fw+gap));
+      const fw=32,fh=24,gap=2.5,fpl=5; // 5 fotos por linha
 
       c.equipamentos.forEach((eq,idx)=>{
         const hasObs = eq.obs && eq.obs.trim();
@@ -2480,24 +2479,35 @@ window.generatePDF = function(id) {
         const diasCert = calcDiasRestantes(eq.certVenc);
         const diasEslinga = calcDiasRestantes(eq.eslingaVenc);
         
-        const bh = 58 + (obsLines.length>0 ? obsLines.length*4+2 : 0);
+        let bh = 52 + (obsLines.length>0 ? obsLines.length*4+2 : 0);
+        if(eq.fotos && eq.fotos.length){
+          const rows = Math.ceil(eq.fotos.length/fpl);
+          bh += 10 + (rows * (fh+gap));
+        }
+
         chk(bh+4);
         doc.setFillColor(249,249,247); doc.setDrawColor(215,215,210); doc.setLineWidth(0.25);
         doc.roundedRect(mg,y,CW,bh,2,2,'FD');
         doc.setFillColor(...mc.accent); doc.roundedRect(mg+3,y+3,30,7,1.5,1.5,'F');
         setFont(8,'bold',mc.accentTxt); txt('EQUIP. '+(idx+1),mg+5,y+8);
         if(eq.status) pill(eq.status,W-mg-4,y+8,eq.status);
+        
         setFont(7.5,'normal',[100,100,100]);
-        txt('Modelo',mg+5,y+16); txt('N° de Serie / Chassis',mg+5,y+24); txt('GPS',mg+5,y+32);
+        txt('Modelo',mg+5,y+16); txt('N° de Serie / Chassis',mg+5,y+24); 
+        txt('Eslinga',mg+5,y+32); txt('GPS',mg+5,y+40);
+        
         txt('Cert.',mg+CW/2,y+16); txt('Venc.',mg+CW/2,y+24); 
-        txt('Eslinga',mg+CW/2+40,y+16); txt('Venc.Esl.',mg+CW/2+40,y+24);
+        txt('Cert.Esl.',mg+CW/2,y+32); txt('Venc.Esl.',mg+CW/2+42,y+32);
+        
         setFont(8.5,'bold');
-        txt(eq.modelo||'—',mg+45,y+16); txt(eq.serie||'—',mg+45,y+24); txt(eq.gps||'—',mg+45,y+32);
-        txt(fmtDate(eq.certData)||'—',mg+CW/2+12,y+16); txt(fmtDate(eq.certVenc)||'—',mg+CW/2+12,y+24);
-        txt(eq.eslinga||'—',mg+CW/2+55,y+16); txt(fmtDate(eq.eslingaVenc)||'—',mg+CW/2+55,y+24);
+        txt(eq.modelo||'—',mg+45,y+16); txt(eq.serie||'—',mg+45,y+24); 
+        txt(eq.eslinga||'—',mg+45,y+32); txt(eq.gps||'—',mg+45,y+40);
+        
+        txt(fmtDate(eq.certData)||'—',mg+CW/2+14,y+16); txt(fmtDate(eq.certVenc)||'—',mg+CW/2+14,y+24);
+        txt(fmtDate(eq.eslingaData)||'—',mg+CW/2+16,y+32); txt(fmtDate(eq.eslingaVenc)||'—',mg+CW/2+59,y+32);
         
         // Adicionar dias restantes
-        let diasY = y + 44;
+        let diasY = y + 46;
         if (diasCert !== null) {
           const corCert = diasCert > 120 ? [22,163,74] : diasCert > 30 ? [234,179,8] : [220,38,38];
           setFont(7,'normal', corCert);
@@ -2510,33 +2520,32 @@ window.generatePDF = function(id) {
           setFont(7,'normal', corEsl);
           doc.setCharSpace(0);
           const txtEsl = diasEslinga > 0 ? diasEslinga+' dias (Esl.)' : 'Vencido '+Math.abs(diasEslinga)+' dias';
-          txt(txtEsl, mg+CW/2+45, diasY);
+          txt(txtEsl, mg+CW/2+42, diasY);
         }
         
-        if(obsLines.length){ setFont(7,'bold',[185,35,35]); doc.text(obsLines,mg+5,y+52); }
-        y+=bh+4;
+        let curY = y + 54;
+        if(obsLines.length){ setFont(7,'bold',[185,35,35]); doc.text(obsLines,mg+5,curY); curY += obsLines.length*4+2; }
 
         // Fotos deste equipamento
         if(eq.fotos && eq.fotos.length){
-          chk(fh+14);
-          setFont(7.5,'bold',[100,100,100]); txt('📷 Fotos — Equipamento '+(idx+1),mg,y+5);
-          y+=10;
+          curY += 2;
+          setFont(7.5,'bold',[100,100,100]); txt('📷 Fotos',mg+5,curY);
+          curY += 6;
           for(let row=0;row<Math.ceil(eq.fotos.length/fpl);row++){
-            if(y+fh+4>H-16){addPage();}
             for(let col=0;col<fpl;col++){
               const fi=row*fpl+col;
               if(fi>=eq.fotos.length) break;
-              const foto=eq.fotos[fi], xPos=mg+col*(fw+gap), yPos=y;
+              const foto=eq.fotos[fi], xPos=mg+5+col*(fw+gap), yPos=curY;
               doc.setFillColor(245,245,240); doc.setDrawColor(208,208,200); doc.setLineWidth(0.25);
               doc.roundedRect(xPos,yPos,fw,fh,2,2,'FD');
               try{ if(foto?.base64?.startsWith('data:image')){ const fmt=foto.base64.includes('/png')?'PNG':'JPEG'; doc.addImage(foto.base64,fmt,xPos+1,yPos+1,fw-2,fh-2); } }catch(e){}
               doc.setFillColor(20,20,20); doc.roundedRect(xPos+fw-9,yPos+fh-7,8,5.5,1,1,'F');
               setFont(6,'bold',[255,255,255]); txt(String(fi+1),xPos+fw-5.5,yPos+fh-3.5,{align:'center'});
             }
-            y+=fh+gap;
+            curY += fh+gap;
           }
-          y+=4;
         }
+        y += bh + 4;
       });
     }
 
