@@ -73,9 +73,9 @@ header{background:var(--bg-card);border-bottom:1px solid var(--border);padding:0
 .mod-tag.interna{background:var(--green-glow);color:var(--green);border:1px solid var(--green);}
 .mod-tag.externa{background:var(--yellow-glow);color:var(--yellow-dark);border:1px solid var(--yellow);}
 .header-right{display:flex;align-items:center;gap:8px;}
-.theme-btn,.back-btn{background:none;border:1px solid var(--border);border-radius:8px;color:var(--text-muted);height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;transition:all .2s;padding:0 10px;gap:5px;font-family:'Syne',sans-serif;font-size:11px;font-weight:600;}
-.theme-btn{width:34px;padding:0;font-size:15px;}
-.theme-btn:hover,.back-btn:hover{border-color:var(--mod-color);color:var(--mod-color);}
+.theme-btn,.back-btn,.refresh-btn{background:none;border:1px solid var(--border);border-radius:8px;color:var(--text-muted);height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;transition:all .2s;padding:0 10px;gap:5px;font-family:'Syne',sans-serif;font-size:11px;font-weight:600;}
+.theme-btn,.refresh-btn{width:34px;padding:0;font-size:15px;}
+.theme-btn:hover,.back-btn:hover,.refresh-btn:hover{border-color:var(--mod-color);color:var(--mod-color);}
 
 /* ── PROGRESS BAR ───────────────────────────────────────── */
 .progress-bar-wrap{background:var(--bg-card);border-bottom:1px solid var(--border);padding:8px 20px;display:flex;align-items:center;gap:10px;}
@@ -562,6 +562,9 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0;}
      MODULE SELECTOR
 ════════════════════════════════════════════════════════ -->
 <div id="module-selector">
+  <div style="position:fixed; top:12px; right:12px; z-index:1000;">
+    <button class="refresh-btn" onclick="forceUpdateApp()" title="Forçar atualização">🔄</button>
+  </div>
   <div class="selector-logo">
     <div class="selector-logo-badge">Tiger Rentank</div>
     <div class="selector-logo-sub">Sistema Unificado</div>
@@ -602,9 +605,7 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0;}
   </div>
 </div>
 
-<!-- ════════════════════════════════════════════════════════
-     APP WRAPPER
-════════════════════════════════════════════════════════ -->
+<!-- APP WRAPPER -->
 <div id="app-wrapper">
 
 <!-- HEADER -->
@@ -614,6 +615,7 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0;}
     <span class="mod-tag" id="mod-tag">Módulo</span>
   </div>
   <div class="header-right">
+    <button class="refresh-btn" id="btn-refresh" onclick="forceUpdateApp()" title="Forçar atualização">🔄</button>
     <button class="back-btn" id="btn-trocar">← Módulo</button>
     <button class="theme-btn" id="theme-toggle" title="Alternar tema">🌙</button>
     <div style="width:8px;height:8px;background:var(--success);border-radius:50%;box-shadow:0 0 6px var(--success);"></div>
@@ -874,6 +876,20 @@ function showUpdateBanner(worker) {
   document.getElementById('btn-update-dismiss').onclick = () => {
     banner.classList.remove('show');
   };
+}
+
+async function forceUpdateApp() {
+  if (confirm('Deseja forçar a atualização do sistema? Isso recarregará a página para aplicar melhorias.')) {
+    if ('serviceWorker' in navigator) {
+      try {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const reg of registrations) {
+          await reg.update();
+        }
+      } catch (e) { console.error('Erro ao atualizar SW:', e); }
+    }
+    window.location.reload(true);
+  }
 }
 
 // ════════════════════════════════════════════════════════════
