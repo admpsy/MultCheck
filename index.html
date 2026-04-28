@@ -879,16 +879,28 @@ function showUpdateBanner(worker) {
 }
 
 async function forceUpdateApp() {
-  if (confirm('Deseja forçar a atualização do sistema? Isso recarregará a página para aplicar melhorias.')) {
-    if ('serviceWorker' in navigator) {
-      try {
+  if (confirm('Deseja forçar a atualização completa? Isso limpará o cache local e recarregará o sistema para a versão mais recente.')) {
+    try {
+      // 1. Limpar todos os caches do PWA
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map(name => caches.delete(name)));
+      }
+
+      // 2. Desregistrar Service Workers para forçar nova instalação
+      if ('serviceWorker' in navigator) {
         const registrations = await navigator.serviceWorker.getRegistrations();
-        for (const reg of registrations) {
-          await reg.update();
-        }
-      } catch (e) { console.error('Erro ao atualizar SW:', e); }
+        await Promise.all(registrations.map(reg => reg.unregister()));
+      }
+
+      // 3. Recarregar com um timestamp na URL para ignorar cache de CDN/Servidor
+      const url = new URL(window.location.href);
+      url.searchParams.set('v', Date.now());
+      window.location.href = url.href;
+    } catch (e) {
+      console.error('Erro na atualização:', e);
+      window.location.reload();
     }
-    window.location.reload(true);
   }
 }
 
