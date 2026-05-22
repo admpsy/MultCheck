@@ -989,8 +989,8 @@ const MODULES = {
     campos: [
       { id:'responsavel',   label:'Responsável *',    type:'select', options:[''], span:1 },
       { id:'data',          label:'Data *',            type:'date', placeholder:'',                    span:1 },
-      { id:'setor',         label:'Setor *',           type:'select', options:[''],                    span:1 },
-      { id:'motivo',        label:'Motivo *',          type:'select', options:['','Manutenção','Entrega','Devolução'], span:1 },
+      { id:'cliente',       label:'Cliente *',         type:'text', placeholder:'Digite o nome da empresa...', span:1 },
+      { id:'motivo',        label:'Motivo *',          type:'select', options:['','Serviço','Nova Locação'], span:1 },
     ],
     servicos: [],
     hasServicos: false,
@@ -1053,7 +1053,7 @@ const MODULES = {
       'Número de Série',
     ],
     statusPor: 'equipamentos',
-    requiredIds: ['responsavel','data','setor','motivo'],
+    requiredIds: ['responsavel','data','cliente','motivo'],
   },
   externa: {
     name: 'Assistência Técnica',
@@ -1331,8 +1331,8 @@ function buildInspecaoHTML(perguntas, comTroca) {
     return `<div class="inspection-item">
       <p class="inspection-question"><span class="insp-num">${n}.</span> ${q}</p>
       <div class="radio-group">
-        <div class="radio-pill success"><input type="radio" id="insp-sim-${n}" name="insp-${n}" value="SIM"><label for="insp-sim-${n}">Sim</label></div>
-        <div class="radio-pill danger"><input type="radio" id="insp-nao-${n}" name="insp-${n}" value="NÃO"><label for="insp-nao-${n}">Não</label></div>
+        <div class="radio-pill success"><input type="radio" id="insp-sim-${n}" name="insp-${n}" value="SIM"><label for="insp-sim-${n}">Conforme</label></div>
+        <div class="radio-pill danger"><input type="radio" id="insp-nao-${n}" name="insp-${n}" value="NÃO"><label for="insp-nao-${n}">Não Conforme</label></div>
         ${troca}
         <div class="radio-pill"><input type="radio" id="insp-na-${n}" name="insp-${n}" value="N/A"><label for="insp-na-${n}">N/A</label></div>
       </div>
@@ -1357,8 +1357,8 @@ function buildInspecaoGruposHTML(grupos) {
           <span class="insp-num">${n}.</span>
           <span class="insp-pergunta">${pergunta}</span>
           <div class="radio-group insp-pills">
-            <div class="radio-pill success"><input type="radio" id="insp-sim-${n}" name="insp-${n}" value="SIM"><label for="insp-sim-${n}">Sim</label></div>
-            <div class="radio-pill danger"><input type="radio" id="insp-nao-${n}" name="insp-${n}" value="NÃO"><label for="insp-nao-${n}">Não</label></div>
+            <div class="radio-pill success"><input type="radio" id="insp-sim-${n}" name="insp-${n}" value="SIM"><label for="insp-sim-${n}">Conforme</label></div>
+            <div class="radio-pill danger"><input type="radio" id="insp-nao-${n}" name="insp-${n}" value="NÃO"><label for="insp-nao-${n}">Não Conforme</label></div>
             <div class="radio-pill"><input type="radio" id="insp-na-${n}" name="insp-${n}" value="N/A"><label for="insp-na-${n}">N/A</label></div>
           </div>
         </div>
@@ -2133,7 +2133,7 @@ function openResumoModal() {
   const campos = currentModule.campos.map(c => `<div class="modal-row"><span>${c.label.replace(' *','')}</span><span>${d[c.id]||'—'}</span></div>`).join('');
   let html = `<div class="modal-section"><div class="modal-section-title">📋 Dados — ${currentModule.name}</div>${campos}</div>
   ${currentModule.hasServicos && d.servicos.length ? `<div class="modal-section"><div class="modal-section-title">⚙️ Serviços (${d.servicos.length})</div>${d.servicos.map(s=>`<div class="modal-row"><span>${s}</span><span>✓</span></div>`).join('')}</div>` : ''}
-  <div class="modal-section"><div class="modal-section-title">🔍 Inspeção ${nao>0?`— <span style="color:var(--danger)">${nao} NÃO</span>`:'— <span style="color:var(--success)">OK</span>'} ${troca>0?`· <span style="color:var(--warning)">${troca} TROCA</span>`:''} ${nr>0?`· <span style="color:var(--warning)">${nr} s/ resposta</span>`:''}</div>${Object.values(d.respostasInspecao).map(item=>{const cls=item.resposta==='SIM'?'r-sim':item.resposta==='NÃO'?'r-nao':item.resposta==='N/A'?'r-na':item.resposta==='TROCA'?'r-troca':'r-nr';return`<div class="modal-insp-item"><span class="modal-insp-q">${item.pergunta}</span><span class="modal-insp-r ${cls}">${item.resposta}</span></div>`;}).join('')}</div>
+  <div class="modal-section"><div class="modal-section-title">🔍 Inspeção ${nao>0?`— <span style="color:var(--danger)">${nao} NÃO CONFORME</span>`:'— <span style="color:var(--success)">OK</span>'} ${troca>0?`· <span style="color:var(--warning)">${troca} TROCA</span>`:''} ${nr>0?`· <span style="color:var(--warning)">${nr} s/ resposta</span>`:''}</div>${Object.values(d.respostasInspecao).map(item=>{const cls=item.resposta==='SIM'?'r-sim':item.resposta==='NÃO'?'r-nao':item.resposta==='N/A'?'r-na':item.resposta==='TROCA'?'r-troca':'r-nr'; const displayResp = item.resposta === 'SIM' ? 'Conforme' : item.resposta === 'NÃO' ? 'Não Conforme' : item.resposta; return`<div class="modal-insp-item"><span class="modal-insp-q">${item.pergunta}</span><span class="modal-insp-r ${cls}">${displayResp}</span></div>`;}).join('')}</div>
   <div class="modal-section"><div class="modal-section-title">📊 Status · 📷 ${totalFotosModal} foto(s)</div><div class="modal-row"><span>Status</span><span>${d.status}</span></div><div class="modal-row"><span>Assinatura</span><span>${d.assinatura?'✓ Assinado':'—'}</span></div>${currentModule.color==='externa'?`<div class="modal-row"><span>Assinatura Cliente</span><span>${d.assinaturaCliente?'✓ Assinado':'—'}</span></div>`:''}</div>`;
   document.getElementById('modal-content').innerHTML = html;
   document.getElementById('modal-resumo').classList.add('open');
@@ -2242,7 +2242,7 @@ function updateHistoryList() {
   const filtered=checklists.filter(item=>{
     if (fStatus!=='all' && item.status!==fStatus) return false;
     if (fDate && item.data!==fDate) return false;
-    const name=(item.cliente||item.responsavel||'').toLowerCase();
+    const name=(item.cliente||item.setor||item.responsavel||'').toLowerCase();
     const resp=(item.responsavel||item.inspetor1||'').toLowerCase();
     if (search && !name.includes(search) && !resp.includes(search)) return false;
     return true;
@@ -2252,7 +2252,7 @@ function updateHistoryList() {
     const bc=item.status==='APROVADO'?'badge-approved':item.status==='REPROVADO'?'badge-rejected':'badge-pending';
     const card=document.createElement('div'); card.className='history-card';
     card.innerHTML=`<div class="history-info">
-      <div class="history-client">${item.cliente||item.responsavel||'—'}</div>
+      <div class="history-client">${item.cliente||item.setor||item.responsavel||'—'}</div>
       <div class="history-meta"><span>📅 ${fmtDate(item.data)}</span><span class="meta-dot">·</span><span>👤 ${item.responsavel||item.inspetor1||'—'}</span><span class="meta-dot">·</span><span>📷 ${(item.equipamentos||[]).reduce((a,eq)=>a+(eq.fotos?.length||0),0)}</span>${(()=>{const s=(item.equipamentos||[]).map(e=>e.serie).filter(Boolean);return s.length?'<span class="meta-dot">·</span><span>N° de Serie / Chassis: '+s.join(', ')+'</span>':''})()}</div>
       <div style="margin-top:6px;"><span class="status-badge ${bc}">${item.status}</span></div>
     </div>
@@ -2299,7 +2299,7 @@ function exportCSV() {
   
   checklists.forEach(c => {
     let row = [
-      c.id || '', c.data || '', c.timestamp || '', c.status || '', c.cliente || '', c.responsavel || ''
+      c.id || '', c.data || '', c.timestamp || '', c.status || '', c.cliente || c.setor || '', c.responsavel || ''
     ];
     
     if (currentModule.color === 'transbordo') row.push(c.tipoOperacao||'', c.tipoCarga||'', c.produto||'', c.lote||'');
@@ -2405,7 +2405,7 @@ function updateDashboard() {
   const meses=Object.entries(porMes).sort((a,b)=>a[0].localeCompare(b[0])).slice(-6);
   const maxMes=Math.max(...meses.map(m=>m[1]),1);
   const clienteCount={};
-  checklists.forEach(c=>{ const k=c.cliente||c.responsavel||''; clienteCount[k]=(clienteCount[k]||0)+1; });
+  checklists.forEach(c=>{ const k=c.cliente||c.setor||c.responsavel||''; clienteCount[k]=(clienteCount[k]||0)+1; });
   const topCli=Object.entries(clienteCount).sort((a,b)=>b[1]-a[1]).slice(0,6);
   const maxCli=topCli[0]?.[1]||1;
   const svcCount={};
@@ -2427,7 +2427,7 @@ function updateDashboard() {
     <div class="chart-bar-row"><span class="chart-bar-label">Pendentes</span><div class="chart-bar-track"><div class="chart-bar-fill" style="width:${pct(pen)}%;background:var(--warning);">${pen}</div></div></div>
   </div></div>
   ${meses.length>1?`<div class="section-card"><p class="chart-title">📅 Por Mês</p><div class="chart-bar-wrap">${meses.map(([m,q])=>`<div class="chart-bar-row"><span class="chart-bar-label">${m.slice(5)}/${m.slice(2,4)}</span><div class="chart-bar-track"><div class="chart-bar-fill" style="width:${Math.round(q/maxMes*100)}%;background:${mc};">${q}</div></div></div>`).join('')}</div></div>`:''}
-  ${topCli.length?`<div class="section-card"><p class="chart-title">👥 Top ${currentModule.color==='interna'?'Setores':'Clientes'}</p><div class="chart-bar-wrap">${topCli.map(([k,q])=>`<div class="chart-bar-row"><span class="chart-bar-label" title="${k}">${k}</span><div class="chart-bar-track"><div class="chart-bar-fill" style="width:${Math.round(q/maxCli*100)}%;background:var(--info);">${q}</div></div></div>`).join('')}</div></div>`:''}
+  ${topCli.length?`<div class="section-card"><p class="chart-title">👥 Top Clientes</p><div class="chart-bar-wrap">${topCli.map(([k,q])=>`<div class="chart-bar-row"><span class="chart-bar-label" title="${k}">${k}</span><div class="chart-bar-track"><div class="chart-bar-fill" style="width:${Math.round(q/maxCli*100)}%;background:var(--info);">${q}</div></div></div>`).join('')}</div></div>`:''}
   ${topSvc.length?`<div class="section-card"><p class="chart-title">⚙️ Serviços</p><div class="chart-bar-wrap">${topSvc.map(([s,q])=>`<div class="chart-bar-row"><span class="chart-bar-label" title="${s}">${s.replace('MANUTENÇÃO','MANUT.').replace('CERTIFICAÇÃO','CERT.').replace('MOVIMENTAÇÃO','MOVIM.')}</span><div class="chart-bar-track"><div class="chart-bar-fill" style="width:${Math.round(q/maxSvc*100)}%;background:var(--orange);">${q}</div></div></div>`).join('')}</div></div>`:''}`;
 }
 
@@ -2585,10 +2585,12 @@ function cfgRenderAll() {
   cfgRenderList(keyCli,  'cfg-clientes-list');
   cfgRenderList(keyResp, 'cfg-responsaveis-list');
   
-  // Show/Hide products and models (only for transbordo)
+  // Show/Hide products, models and clients
+  const clientSec = document.getElementById('cfg-section-clientes');
   const productSec = document.getElementById('cfg-section-produtos');
   const modelSec = document.getElementById('cfg-section-modelos');
   const isTransbordo = mod === 'transbordo';
+  if (clientSec) clientSec.style.display = isInterna ? 'none' : 'block';
   if (productSec) productSec.style.display = isTransbordo ? 'block' : 'none';
   if (modelSec) modelSec.style.display = isTransbordo ? 'block' : 'none';
 
@@ -2674,7 +2676,6 @@ function cfgUpdateSelects() {
     ];
   } else if (mod === 'interna') {
     maps = [
-      { id:'setor',       key:'setores_interna' },
       { id:'responsavel', key:'responsaveis_interna' },
     ];
   }
@@ -3080,7 +3081,8 @@ window.generatePDF = function(id) {
       doc.roundedRect(mg,y,CW,ih,2,2,'FD');
       setFont(7.5,'normal',[35,35,35]);
       doc.text(qLines,mg+4,y+5);
-      pill(item.resposta,W-mg-4,y+7,item.resposta==='SIM'?'SIM':item.resposta==='NÃO'?'NAO':item.resposta==='TROCA'?'TROCA':'NA');
+      const labelPDF = item.resposta === 'SIM' ? 'Conforme' : item.resposta === 'NÃO' ? 'Não Conforme' : item.resposta;
+      pill(labelPDF,W-mg-4,y+7,item.resposta==='SIM'?'SIM':item.resposta==='NÃO'?'NAO':item.resposta==='TROCA'?'TROCA':'NA');
       if(obsLines.length){ setFont(7,'bold',[185,35,35]); doc.text(obsLines,mg+4,y+5+qLines.length*4.5); }
       y+=ih+3;
     });
